@@ -1,0 +1,17 @@
+export const colors = {
+  background: "#EEF2FF",
+  primary: "#5B8DEF",
+  primaryDark: "#4A7AD9",
+  primaryDarker: "#3B6FD9",
+  primaryLight: "#E8F0FF",
+  heroGradientStart: "#DDE8FF",
+  white: "#FFFFFF",
+  slate900: "#0F172A",
+  slate700: "#334155",
+  slate600: "#475569",
+  slate500: "#64748B",
+  slate400: "#94A3B8",
+  red50: "#FEF2F2",
+  red100: "#FEE2E2",
+  red700: "#B91C1C",
+} as const;
