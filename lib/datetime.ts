@@ -64,7 +64,10 @@ export function getTimezoneFromRequest(request: Request): string | null {
   return request.headers.get("x-timezone");
 }
 
-export function getTodayWindow(timeZone: string): {
+export function getDayWindow(
+  timeZone: string,
+  dayOffset = 0
+): {
   timeMin: string;
   timeMax: string;
 } {
@@ -73,10 +76,24 @@ export function getTodayWindow(timeZone: string): {
   }
 
   const today = new Date().toLocaleDateString("en-CA", { timeZone });
-  const tomorrow = addCalendarDays(today, 1);
+  const startDay = addCalendarDays(today, dayOffset);
+  const endDay = addCalendarDays(today, dayOffset + 1);
 
-  const timeMin = toUtcInstant(today, "00:00:00", timeZone).toISOString();
-  const timeMax = toUtcInstant(tomorrow, "00:00:00", timeZone).toISOString();
+  const timeMin = toUtcInstant(startDay, "00:00:00", timeZone).toISOString();
+  const timeMax = toUtcInstant(endDay, "00:00:00", timeZone).toISOString();
 
   return { timeMin, timeMax };
+}
+
+export function getTodayWindow(timeZone: string): {
+  timeMin: string;
+  timeMax: string;
+} {
+  return getDayWindow(timeZone, 0);
+}
+
+export function getDayFromRequest(request: Request): number {
+  const url = new URL(request.url);
+  const day = url.searchParams.get("day");
+  return day === "tomorrow" ? 1 : 0;
 }

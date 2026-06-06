@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getTimezoneFromRequest, getTodayWindow } from "@/lib/datetime";
+import { getDayFromRequest, getDayWindow, getTimezoneFromRequest } from "@/lib/datetime";
 import { geocodeLocation } from "@/lib/geocode";
 import { fetchTodayEvents } from "@/lib/google-calendar";
 import { getSession } from "@/lib/session";
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     let timeMax: string;
 
     try {
-      ({ timeMin, timeMax } = getTodayWindow(timezone));
+      ({ timeMin, timeMax } = getDayWindow(timezone, getDayFromRequest(request)));
     } catch {
       return NextResponse.json(
         { error: "Invalid timezone." },
