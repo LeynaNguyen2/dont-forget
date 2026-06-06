@@ -34,11 +34,13 @@ export async function GET(request: Request) {
       );
     }
 
+    const dayOffset = getDayFromRequest(request);
+
     let timeMin: string;
     let timeMax: string;
 
     try {
-      ({ timeMin, timeMax } = getDayWindow(timezone, getDayFromRequest(request)));
+      ({ timeMin, timeMax } = getDayWindow(timezone, dayOffset));
     } catch {
       return NextResponse.json(
         { error: "Invalid timezone." },
@@ -59,7 +61,9 @@ export async function GET(request: Request) {
         const lon = geocoded?.lon ?? null;
 
         const weather =
-          lat !== null && lon !== null ? await getWeather(lat, lon) : null;
+          lat !== null && lon !== null
+            ? await getWeather(lat, lon, dayOffset)
+            : null;
 
         return {
           ...event,

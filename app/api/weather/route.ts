@@ -7,6 +7,8 @@ export async function GET(request: Request) {
   const location = url.searchParams.get("location");
   const lat = Number(url.searchParams.get("lat"));
   const lon = Number(url.searchParams.get("lon"));
+  const day = url.searchParams.get("day");
+  const dayOffset = day === "tomorrow" ? 1 : 0;
 
   let resolvedLat = lat;
   let resolvedLon = lon;
@@ -31,7 +33,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const weather = await getWeather(resolvedLat, resolvedLon);
+  const weather = await getWeather(resolvedLat, resolvedLon, dayOffset);
 
   if (!weather) {
     return NextResponse.json(

@@ -94,7 +94,7 @@ export default function HomePage() {
   }, []);
 
   const resolveHeroWeather = useCallback(
-    async (calendarEvents: CalendarEventWithWeather[]) => {
+    async (calendarEvents: CalendarEventWithWeather[], day: Tab) => {
       setLoadingHero(true);
       setHeroError(null);
 
@@ -113,14 +113,17 @@ export default function HomePage() {
         setHeroWeather(null);
         setHeroLocationLabel(null);
         setHeroError(
-          "No events today. Set a home location in settings to see weather."
+          `No events ${day === "today" ? "today" : "tomorrow"}. Set a home address in settings to see weather.`
         );
         setLoadingHero(false);
         return;
       }
 
       try {
-        const params = new URLSearchParams({ location: homeLocation });
+        const params = new URLSearchParams({
+          location: homeLocation,
+          day,
+        });
         const response = await fetch(`/api/weather?${params.toString()}`, {
           credentials: "same-origin",
         });
@@ -178,18 +181,18 @@ export default function HomePage() {
             `Failed to load calendar events (${response.status}).`
           )
         );
-        await resolveHeroWeather([]);
+        await resolveHeroWeather([], tab);
         return;
       }
 
       const data = await response.json();
       const calendarEvents = data.events ?? [];
       setEvents(calendarEvents);
-      await resolveHeroWeather(calendarEvents);
+      await resolveHeroWeather(calendarEvents, tab);
     } catch {
       setEvents([]);
       setEventsError("Failed to load calendar events. Please try again.");
-      await resolveHeroWeather([]);
+      await resolveHeroWeather([], tab);
     } finally {
       setLoadingEvents(false);
     }
@@ -267,11 +270,7 @@ export default function HomePage() {
               <p className="mt-1 text-xs text-slate-400">Checking sign-in...</p>
             )}
           </div>
-          <SettingsMenu
-            onHomeLocationChange={() => {
-              void resolveHeroWeather(events);
-            }}
-          />
+          <SettingsMenu />
         </header>
 
         <div className="mb-6 flex rounded-2xl bg-white p-1 shadow-sm">
@@ -343,7 +342,7 @@ export default function HomePage() {
 
         <section>
           <h2 className="mb-3 text-sm font-semibold text-slate-900">
-            Your Day
+            {tab === "today" ? "Your Day" : "Tomorrow"}
           </h2>
 
           {isSessionLoading || loadingEvents ? (

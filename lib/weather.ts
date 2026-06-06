@@ -22,9 +22,20 @@ interface OneCallHourly {
   pop?: number;
 }
 
+interface OneCallDaily {
+  temp?: {
+    day?: number;
+  };
+  uvi?: number;
+  wind_speed?: number;
+  pop?: number;
+  weather?: OneCallWeatherEntry[];
+}
+
 interface OneCallResponse {
   current?: OneCallCurrent;
   hourly?: OneCallHourly[];
+  daily?: OneCallDaily[];
 }
 
 function normalizeCondition(main: string, description: string): string {
@@ -62,9 +73,27 @@ function redactApiKey(url: string, apiKey: string): string {
   return url.replaceAll(apiKey, "[REDACTED]");
 }
 
+function weatherFromDaily(daily: OneCallDaily): WeatherData | null {
+  const weatherEntry = daily.weather?.[0];
+  const temperature = daily.temp?.day;
+
+  if (!weatherEntry || temperature === undefined) {
+    return null;
+  }
+
+  return {
+    temperatureF: Math.round(temperature),
+    condition: normalizeCondition(weatherEntry.main, weatherEntry.description),
+    chanceOfRain: daily.pop !== undefined ? Math.round(daily.pop * 100) : 0,
+    uvIndex: daily.uvi ?? 0,
+    windSpeed: Math.round(daily.wind_speed ?? 0),
+  };
+}
+
 export async function getWeather(
   lat: number,
-  lon: number
+  lon: number,
+  dayOffset = 0
 ): Promise<WeatherData | null> {
   const apiKey = process.env.OPENWEATHER_KEY;
   if (!apiKey) {
@@ -76,7 +105,7 @@ export async function getWeather(
     lat: String(lat),
     lon: String(lon),
     units: "imperial",
-    exclude: "minutely,daily,alerts",
+    exclude: dayOffset > 0 ? "minutely,alerts" : "minutely,daily,alerts",
     appid: apiKey,
   });
 
@@ -105,6 +134,19 @@ export async function getWeather(
     } catch (parseError) {
       console.error("[weather] Failed to parse response JSON:", parseError);
       return null;
+    }
+
+    if (dayOffset > 0) {
+      const daily = data.daily?.[dayOffset];
+      if (!daily) {
+        console.error(
+          `[weather] Missing daily forecast for day offset ${dayOffset}:`,
+          data
+        );
+        return null;
+      }
+
+      return weatherFromDaily(daily);
     }
 
     const current = data.current;
