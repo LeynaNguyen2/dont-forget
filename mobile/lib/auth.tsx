@@ -11,11 +11,11 @@ import {
 } from "react";
 
 import {
+  AUTH_REDIRECT_SCHEME,
   fetchSession,
   getSignInUrl,
+  parseAuthCallbackUrl,
   setSessionCookie,
-  SESSION_COOKIE_KEY,
-  SECURE_SESSION_COOKIE_KEY,
 } from "./api";
 import type { Session } from "./types";
 
@@ -23,17 +23,29 @@ WebBrowser.maybeCompleteAuthSession();
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
+interface AuthCallbackParams {
+  cookie?: string | string[];
+  error?: string | string[];
+}
+
 interface AuthContextValue {
   status: AuthStatus;
   session: Session | null;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshSession: () => Promise<void>;
+  completeAuthCallback: (
+    params: AuthCallbackParams | string
+  ) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 const COOKIE_STORAGE_KEY = "dont-forget-session-cookie";
+
+function firstParam(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
+}
 
 async function loadStoredCookie(): Promise<string | null> {
   try {
@@ -50,26 +62,6 @@ async function storeCookie(cookie: string | null): Promise<void> {
     await SecureStore.deleteItemAsync(COOKIE_STORAGE_KEY);
   }
   setSessionCookie(cookie);
-}
-
-function cookieFromSetCookieHeader(setCookie: string | null): string | null {
-  if (!setCookie) {
-    return null;
-  }
-
-  const parts = setCookie.split(",").map((part) => part.trim());
-  const sessionParts: string[] = [];
-
-  for (const part of parts) {
-    if (
-      part.startsWith(`${SESSION_COOKIE_KEY}=`) ||
-      part.startsWith(`${SECURE_SESSION_COOKIE_KEY}=`)
-    ) {
-      sessionParts.push(part.split(";")[0]);
-    }
-  }
-
-  return sessionParts.length > 0 ? sessionParts.join("; ") : null;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -93,6 +85,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus("unauthenticated");
   }, []);
 
+  const completeAuthCallback = useCallback(
+    async (params: AuthCallbackParams | string): Promise<boolean> => {
+      const parsed =
+        typeof params === "string"
+          ? parseAuthCallbackUrl(params)
+          : {
+              cookie: firstParam(params.cookie) ?? null,
+              error: firstParam(params.error) ?? null,
+            };
+
+      if (parsed.error) {
+        console.error("Mobile auth callback error:", parsed.error);
+        return false;
+      }
+
+      if (!parsed.cookie) {
+        return false;
+      }
+
+      await storeCookie(parsed.cookie);
+      return true;
+    },
+    []
+  );
+
   useEffect(() => {
     async function bootstrap() {
       const envCookie = process.env.EXPO_PUBLIC_SESSION_COOKIE;
@@ -109,21 +126,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const signInUrl = getSignInUrl();
     const result = await WebBrowser.openAuthSessionAsync(
       signInUrl,
-      "dontforget://auth"
+      AUTH_REDIRECT_SCHEME
     );
 
     if (result.type === "success" && result.url) {
-      const response = await fetch(result.url, { redirect: "manual" });
-      const cookie = cookieFromSetCookieHeader(
-        response.headers.get("set-cookie")
-      );
-      if (cookie) {
-        await storeCookie(cookie);
-      }
+      await completeAuthCallback(result.url);
     }
 
     await refreshSession();
-  }, [refreshSession]);
+  }, [completeAuthCallback, refreshSession]);
 
   const signOut = useCallback(async () => {
     await storeCookie(null);
@@ -138,8 +149,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signIn,
       signOut,
       refreshSession,
+      completeAuthCallback,
     }),
-    [status, session, signIn, signOut, refreshSession]
+    [status, session, signIn, signOut, refreshSession, completeAuthCallback]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

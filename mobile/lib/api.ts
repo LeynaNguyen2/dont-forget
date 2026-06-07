@@ -1,6 +1,9 @@
 import Constants from "expo-constants";
 import type { CalendarEventWithWeather, Session, Tab } from "./types";
 
+export const DEFAULT_API_URL = "https://dont-forget-kappa.vercel.app";
+export const AUTH_REDIRECT_SCHEME = "dontforget://auth";
+
 const SESSION_COOKIE_KEY = "next-auth.session-token";
 const SECURE_SESSION_COOKIE_KEY = "__Secure-next-auth.session-token";
 
@@ -10,13 +13,7 @@ export function getApiBaseUrl(): string {
     return envUrl.replace(/\/$/, "");
   }
 
-  const hostUri = Constants.expoConfig?.hostUri;
-  if (hostUri) {
-    const host = hostUri.split(":")[0];
-    return `http://${host}:3000`;
-  }
-
-  return "http://localhost:3000";
+  return DEFAULT_API_URL;
 }
 
 let sessionCookie: string | null =
@@ -38,6 +35,22 @@ function buildAuthHeaders(): HeadersInit {
   }
 
   return headers;
+}
+
+export function parseAuthCallbackUrl(url: string): {
+  cookie: string | null;
+  error: string | null;
+} {
+  const queryIndex = url.indexOf("?");
+  if (queryIndex === -1) {
+    return { cookie: null, error: null };
+  }
+
+  const searchParams = new URLSearchParams(url.slice(queryIndex + 1));
+  return {
+    cookie: searchParams.get("cookie"),
+    error: searchParams.get("error"),
+  };
 }
 
 export async function parseApiError(
@@ -163,8 +176,11 @@ export async function fetchWeather(
 }
 
 export function getSignInUrl(): string {
-  const callbackUrl = encodeURIComponent("dontforget://auth");
-  return `${getApiBaseUrl()}/api/auth/signin/google?callbackUrl=${callbackUrl}`;
+  const baseUrl = getApiBaseUrl();
+  const callbackUrl = encodeURIComponent(
+    `${baseUrl}/api/mobile/auth/callback`
+  );
+  return `${baseUrl}/api/auth/signin/google?callbackUrl=${callbackUrl}`;
 }
 
 export { SESSION_COOKIE_KEY, SECURE_SESSION_COOKIE_KEY };
