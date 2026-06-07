@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import AuthProvider from "@/components/AuthProvider";
+import PushNotificationSetup from "@/components/PushNotificationSetup";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import "./globals.css";
 
@@ -54,7 +55,10 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <PushNotificationSetup />
+        </AuthProvider>
         <ServiceWorkerRegistration />
       </body>
     </html>
