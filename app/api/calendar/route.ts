@@ -9,16 +9,14 @@ export async function GET(request: Request) {
   try {
     const session = await getSession();
 
-    if (!session?.accessToken) {
+    if (!session?.accessToken || session.error === "RefreshAccessTokenError") {
       return NextResponse.json(
-        { error: "Unauthorized. Please sign in." },
-        { status: 401 }
-      );
-    }
-
-    if (session.expiresAt && Date.now() / 1000 >= session.expiresAt) {
-      return NextResponse.json(
-        { error: "Access token expired. Please sign in again." },
+        {
+          error:
+            session?.error === "RefreshAccessTokenError"
+              ? "Session expired. Please sign in again."
+              : "Unauthorized. Please sign in.",
+        },
         { status: 401 }
       );
     }
