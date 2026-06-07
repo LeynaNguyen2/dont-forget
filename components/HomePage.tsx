@@ -70,8 +70,33 @@ function ErrorMessage({ message }: { message: string }) {
   );
 }
 
+function HomePageLoading() {
+  return (
+    <main className="min-h-screen bg-[#EEF2FF] px-4 pb-10 pt-6">
+      <div className="mx-auto max-w-md">
+        <header className="mb-5 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold text-slate-900">
+              Don&apos;t Forget
+            </h1>
+            <p className="mt-1 text-xs text-slate-400">Loading...</p>
+          </div>
+        </header>
+        <CardSkeleton className="mb-4 h-36" />
+        <CardSkeleton className="mb-6 h-28" />
+        <div className="space-y-3">
+          <CardSkeleton className="h-24" />
+          <CardSkeleton className="h-24" />
+          <CardSkeleton className="h-24" />
+        </div>
+      </div>
+    </main>
+  );
+}
+
 export default function HomePage() {
   const { status } = useSession();
+  const [hasMounted, setHasMounted] = useState(false);
   const [tab, setTab] = useState<Tab>("today");
   const [timezone, setTimezone] = useState<string | null>(null);
   const [heroWeather, setHeroWeather] = useState<WeatherData | null>(null);
@@ -90,6 +115,7 @@ export default function HomePage() {
   const [briefError, setBriefError] = useState<string | null>(null);
 
   useEffect(() => {
+    setHasMounted(true);
     setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, []);
 
@@ -252,11 +278,15 @@ export default function HomePage() {
     fetchBrief();
   }, [status, timezone, fetchEvents, fetchBrief]);
 
+  if (!hasMounted || status === "loading") {
+    return <HomePageLoading />;
+  }
+
   if (status === "unauthenticated") {
     return <SignInScreen />;
   }
 
-  const isSessionLoading = status === "loading";
+  const isSessionLoading = false;
 
   return (
     <main className="min-h-screen bg-[#EEF2FF] px-4 pb-10 pt-6">

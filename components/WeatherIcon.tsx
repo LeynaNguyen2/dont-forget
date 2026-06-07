@@ -7,7 +7,7 @@ export default function WeatherIcon({
   condition,
   className = "text-4xl",
 }: WeatherIconProps) {
-  const normalized = condition.toLowerCase();
+  const normalized = (condition ?? "unknown").toLowerCase();
 
   let icon = "🌤️";
   if (normalized.includes("sunny") || normalized.includes("clear")) {
