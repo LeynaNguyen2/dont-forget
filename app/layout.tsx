@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { getServerSession } from "next-auth";
+
 import AuthProvider from "@/components/AuthProvider";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import { authOptions } from "@/lib/auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -32,15 +35,17 @@ export const viewport: Viewport = {
   themeColor: "#3b82f6",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html lang="en">
       <body className="antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider session={session}>{children}</AuthProvider>
         <ServiceWorkerRegistration />
       </body>
     </html>

@@ -1,5 +1,9 @@
-const CACHE_NAME = "dont-forget-v1";
-const PRECACHE_URLS = ["/", "/manifest.json", "/icon-192.png", "/icon-512.png"];
+const CACHE_NAME = "dont-forget-v2";
+const PRECACHE_URLS = ["/manifest.json", "/icon-192.png", "/icon-512.png"];
+
+function isHttpOrHttps(url) {
+  return url.protocol === "http:" || url.protocol === "https:";
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -77,8 +81,14 @@ self.addEventListener("fetch", (event) => {
 
   const requestUrl = new URL(event.request.url);
 
-  if (requestUrl.pathname.startsWith("/api/")) {
-    event.respondWith(fetch(event.request));
+  if (!isHttpOrHttps(requestUrl)) {
+    return;
+  }
+
+  if (
+    requestUrl.pathname.startsWith("/api/") ||
+    requestUrl.pathname.startsWith("/_next/")
+  ) {
     return;
   }
 
@@ -92,7 +102,8 @@ self.addEventListener("fetch", (event) => {
         if (
           !networkResponse ||
           networkResponse.status !== 200 ||
-          networkResponse.type !== "basic"
+          networkResponse.type !== "basic" ||
+          !isHttpOrHttps(new URL(networkResponse.url))
         ) {
           return networkResponse;
         }

@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import SettingsMenu from "@/components/SettingsMenu";
-import SignInScreen from "@/components/SignInScreen";
 import WeatherIcon from "@/components/WeatherIcon";
 import type { CalendarEventWithWeather } from "@/lib/brief";
 import { getHomeLocation } from "@/lib/settings";
@@ -95,8 +95,8 @@ function HomePageLoading() {
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const { status } = useSession();
-  const [hasMounted, setHasMounted] = useState(false);
   const [tab, setTab] = useState<Tab>("today");
   const [timezone, setTimezone] = useState<string | null>(null);
   const [heroWeather, setHeroWeather] = useState<WeatherData | null>(null);
@@ -115,9 +115,14 @@ export default function HomePage() {
   const [briefError, setBriefError] = useState<string | null>(null);
 
   useEffect(() => {
-    setHasMounted(true);
     setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, []);
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/signin");
+    }
+  }, [status, router]);
 
   const resolveHeroWeather = useCallback(
     async (calendarEvents: CalendarEventWithWeather[], day: Tab) => {
@@ -278,15 +283,9 @@ export default function HomePage() {
     fetchBrief();
   }, [status, timezone, fetchEvents, fetchBrief]);
 
-  if (!hasMounted || status === "loading") {
+  if (status !== "authenticated") {
     return <HomePageLoading />;
   }
-
-  if (status === "unauthenticated") {
-    return <SignInScreen />;
-  }
-
-  const isSessionLoading = false;
 
   return (
     <main className="min-h-screen bg-[#EEF2FF] px-4 pb-10 pt-6">
@@ -296,9 +295,6 @@ export default function HomePage() {
             <h1 className="text-xl font-semibold text-slate-900">
               Don&apos;t Forget
             </h1>
-            {isSessionLoading && (
-              <p className="mt-1 text-xs text-slate-400">Checking sign-in...</p>
-            )}
           </div>
           <SettingsMenu />
         </header>
@@ -320,7 +316,7 @@ export default function HomePage() {
           ))}
         </div>
 
-        {isSessionLoading || loadingHero ? (
+        {loadingHero ? (
           <CardSkeleton className="mb-4 h-36" />
         ) : (
           <section className="mb-4 rounded-3xl bg-gradient-to-br from-[#DDE8FF] to-white p-6 shadow-sm">
@@ -353,7 +349,7 @@ export default function HomePage() {
         )}
 
         {tab === "today" &&
-          (isSessionLoading || loadingBrief ? (
+          (loadingBrief ? (
             <CardSkeleton className="mb-6 h-28" />
           ) : (
             <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm">
@@ -375,7 +371,7 @@ export default function HomePage() {
             {tab === "today" ? "Your Day" : "Tomorrow"}
           </h2>
 
-          {isSessionLoading || loadingEvents ? (
+          {loadingEvents ? (
             <div className="space-y-3">
               <CardSkeleton className="h-24" />
               <CardSkeleton className="h-24" />
