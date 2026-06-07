@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { signOut } from "next-auth/react";
 import {
+  getNotificationPermission,
+  registerPushNotifications,
+} from "@/lib/push-client";
+import {
   DEFAULT_PREFERENCES,
   getPreferences,
   savePreferences,
@@ -45,9 +49,16 @@ export default function SettingsPage() {
   const [preferences, setPreferences] =
     useState<UserPreferences>(DEFAULT_PREFERENCES);
   const [saved, setSaved] = useState(false);
+  const [notificationPermission, setNotificationPermission] =
+    useState<NotificationPermission | null>(null);
+  const [notificationStatus, setNotificationStatus] = useState<string | null>(
+    null
+  );
+  const [enablingNotifications, setEnablingNotifications] = useState(false);
 
   useEffect(() => {
     setPreferences(getPreferences());
+    setNotificationPermission(getNotificationPermission());
   }, []);
 
   function updatePreference<K extends keyof UserPreferences>(
@@ -61,6 +72,22 @@ export default function SettingsPage() {
   function handleSave() {
     savePreferences(preferences);
     setSaved(true);
+  }
+
+  async function handleEnableNotifications() {
+    setEnablingNotifications(true);
+    setNotificationStatus(null);
+
+    const result = await registerPushNotifications();
+    setNotificationPermission(result.permission ?? getNotificationPermission());
+
+    if (result.success) {
+      setNotificationStatus("Notifications enabled. You'll receive your morning brief.");
+    } else {
+      setNotificationStatus(result.error);
+    }
+
+    setEnablingNotifications(false);
   }
 
   return (
@@ -128,6 +155,38 @@ export default function SettingsPage() {
               onChange={(value) => updatePreference("carryUmbrella", value)}
             />
           </div>
+        </section>
+
+        <section className="mb-4 rounded-3xl bg-white p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-900">Notifications</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Get your AI morning brief delivered as a push notification.
+          </p>
+          {notificationPermission === "granted" ? (
+            <p className="mt-3 text-sm text-[#3B6FD9]">
+              Notifications are enabled.
+            </p>
+          ) : (
+            <button
+              type="button"
+              onClick={() => void handleEnableNotifications()}
+              disabled={enablingNotifications}
+              className="mt-3 w-full rounded-2xl bg-[#5B8DEF] px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-[#4A7DE0] disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {enablingNotifications ? "Enabling..." : "Enable Notifications"}
+            </button>
+          )}
+          {notificationStatus && (
+            <p
+              className={`mt-3 text-sm ${
+                notificationPermission === "granted"
+                  ? "text-[#3B6FD9]"
+                  : "text-red-600"
+              }`}
+            >
+              {notificationStatus}
+            </p>
+          )}
         </section>
 
         <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm">

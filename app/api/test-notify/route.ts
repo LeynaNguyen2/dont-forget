@@ -1,20 +1,16 @@
 import { NextResponse } from "next/server";
 
 import { sendPushBriefsToAll } from "@/lib/send-push-briefs";
-
-function isAuthorizedCron(request: Request): boolean {
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
-    return false;
-  }
-
-  const authHeader = request.headers.get("authorization");
-  return authHeader === `Bearer ${cronSecret}`;
-}
+import { getSession } from "@/lib/session";
 
 export async function GET(request: Request) {
-  if (!isAuthorizedCron(request)) {
-    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  const session = await getSession();
+
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: "Unauthorized. Please sign in." },
+      { status: 401 }
+    );
   }
 
   try {
@@ -28,14 +24,14 @@ export async function GET(request: Request) {
       results,
     });
   } catch (error) {
-    console.error("Notify error:", error);
+    console.error("Test notify error:", error);
 
     return NextResponse.json(
       {
         error:
           error instanceof Error
             ? error.message
-            : "Failed to send push notifications.",
+            : "Failed to send test push notifications.",
       },
       { status: 500 }
     );
