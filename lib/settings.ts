@@ -67,7 +67,15 @@ export function savePreferences(preferences: UserPreferences): void {
 
 export function getHomeLocation(): string | null {
   const address = readPreferences().homeAddress.trim();
-  return address || null;
+  if (address) {
+    return address;
+  }
+
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return localStorage.getItem(LEGACY_HOME_LOCATION_KEY)?.trim() || null;
 }
 
 export function setHomeLocation(location: string): void {

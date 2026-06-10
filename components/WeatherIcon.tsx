@@ -1,62 +1,30 @@
-import {
-  Cloud,
-  CloudFog,
-  CloudLightning,
-  CloudRain,
-  CloudSun,
-  Snowflake,
-  Sun,
-  Wind,
-  type LucideIcon,
-} from "lucide-react";
-
 interface WeatherIconProps {
   condition: string;
   className?: string;
 }
 
-function getWeatherIcon(condition: string): LucideIcon {
-  const normalized = (condition ?? "unknown").toLowerCase();
-
-  if (normalized.includes("sunny") || normalized.includes("clear")) {
-    return Sun;
-  }
-  if (normalized.includes("partly")) {
-    return CloudSun;
-  }
-  if (normalized.includes("rain") || normalized.includes("drizzle")) {
-    return CloudRain;
-  }
-  if (normalized.includes("thunder") || normalized.includes("storm")) {
-    return CloudLightning;
-  }
-  if (normalized.includes("snow")) {
-    return Snowflake;
-  }
-  if (normalized.includes("fog") || normalized.includes("mist")) {
-    return CloudFog;
-  }
-  if (normalized.includes("wind")) {
-    return Wind;
-  }
-  if (normalized.includes("cloud")) {
-    return Cloud;
-  }
-
-  return CloudSun;
-}
-
 export default function WeatherIcon({
   condition,
-  className = "h-5 w-5",
+  className = "text-4xl",
 }: WeatherIconProps) {
-  const Icon = getWeatherIcon(condition);
+  const normalized = (condition ?? "unknown").toLowerCase();
 
-  return (
-    <Icon
-      className={className}
-      strokeWidth={1.75}
-      aria-hidden
-    />
-  );
+  let icon = "🌤️";
+  if (normalized.includes("sunny") || normalized.includes("clear")) {
+    icon = "☀️";
+  } else if (normalized.includes("cloud")) {
+    icon = "☁️";
+  } else if (normalized.includes("rain") || normalized.includes("drizzle")) {
+    icon = "🌧️";
+  } else if (normalized.includes("thunder") || normalized.includes("storm")) {
+    icon = "⛈️";
+  } else if (normalized.includes("snow")) {
+    icon = "🌨️";
+  } else if (normalized.includes("fog") || normalized.includes("mist")) {
+    icon = "🌫️";
+  } else if (normalized.includes("wind")) {
+    icon = "💨";
+  }
+
+  return <span className={className}>{icon}</span>;
 }
