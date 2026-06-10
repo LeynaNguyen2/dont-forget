@@ -24,6 +24,16 @@ export function createDefaultProfile(email: string): UserProfile {
   };
 }
 
+export function needsOnboarding(profile: UserProfile): boolean {
+  return !profile.onboardingCompleted || !profile.homeCity.trim();
+}
+
+export function getPostAuthRedirectPath(
+  profile: UserProfile
+): "/onboarding/location" | "/" {
+  return needsOnboarding(profile) ? "/onboarding/location" : "/";
+}
+
 export async function getUserProfile(email: string): Promise<UserProfile | null> {
   const redis = getRedis();
   return redis.get<UserProfile>(profileKey(email));

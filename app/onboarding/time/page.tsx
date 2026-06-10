@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import OnboardingTime from "@/components/OnboardingTime";
 import { authOptions } from "@/lib/auth";
-import { getUserProfileOrDefault } from "@/lib/user-profile";
+import { getUserProfileOrDefault, needsOnboarding } from "@/lib/user-profile";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ export default async function OnboardingTimePage() {
   }
 
   const profile = await getUserProfileOrDefault(session.user.email);
-  if (profile.onboardingCompleted) {
+  if (!needsOnboarding(profile)) {
     redirect("/");
   }
 
