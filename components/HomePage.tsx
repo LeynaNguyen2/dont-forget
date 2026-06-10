@@ -1,49 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { RefreshCw, Sun } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import SettingsMenu from "@/components/SettingsMenu";
+
+import EventCard from "@/components/home/EventCard";
+import WeekDayStrip, {
+  type WeekDaySummary,
+} from "@/components/home/WeekDayStrip";
 import WeatherIcon from "@/components/WeatherIcon";
 import { truncateBrief, type CalendarEventWithWeather } from "@/lib/brief";
-import { formatEventLocation } from "@/lib/event-location";
 import { fetchProfile } from "@/lib/profile-client";
-import {
-  getHomeLocation,
-  getPreferences,
-  savePreferences,
-} from "@/lib/settings";
+import { getHomeLocation } from "@/lib/settings";
+import { buildWeatherSummary } from "@/lib/weather-description";
 import type { WeatherData } from "@/lib/weather";
 
-type Tab = "today" | "tomorrow";
-
-function formatEventTime(iso: string, timezone: string | null): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) {
-    return iso;
-  }
-
-  if (!timezone) {
-    return date.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  }
-
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: timezone,
-  }).format(date);
-}
-
-function capitalize(text: string | undefined): string {
-  if (!text) {
-    return "Unknown";
-  }
-
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
+type Tab = "today" | "tomorrow" | "week";
 
 async function parseApiError(response: Response, fallback: string): Promise<string> {
   try {
@@ -52,7 +26,6 @@ async function parseApiError(response: Response, fallback: string): Promise<stri
       const data = await response.json();
       return data.error ?? fallback;
     }
-
     const text = await response.text();
     return text || fallback;
   } catch {
@@ -63,7 +36,7 @@ async function parseApiError(response: Response, fallback: string): Promise<stri
 function CardSkeleton({ className = "h-32" }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-3xl bg-white/80 shadow-sm ${className}`}
+      className={`animate-pulse rounded-3xl bg-brand-cream-dark/60 shadow-sm ${className}`}
     />
   );
 }
@@ -76,53 +49,78 @@ function ErrorMessage({ message }: { message: string }) {
   );
 }
 
-function HomePageLoading() {
-  return (
-    <main className="min-h-screen bg-[#EEF2FF] px-4 pb-10 pt-6">
-      <div className="mx-auto max-w-md">
-        <header className="mb-5 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-900">
-              Don&apos;t Forget
-            </h1>
-            <p className="mt-1 text-xs text-slate-400">Loading...</p>
-          </div>
-        </header>
-        <CardSkeleton className="mb-4 h-36" />
-        <CardSkeleton className="mb-6 h-28" />
-        <div className="space-y-3">
-          <CardSkeleton className="h-24" />
-          <CardSkeleton className="h-24" />
-          <CardSkeleton className="h-24" />
-        </div>
-      </div>
-    </main>
-  );
+function formatDateHeader(timezone: string | null): string {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    timeZone: timezone ?? undefined,
+  }).format(new Date());
+}
+
+function formatShortDate(offset: number, timezone: string): string {
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: timezone });
+  const [y, m, d] = today.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d + offset));
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function getDayLabel(offset: number, timezone: string): string {
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: timezone });
+  const [y, m, d] = today.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d + offset));
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    timeZone: "UTC",
+  })
+    .format(date)
+    .toUpperCase();
 }
 
 export default function HomePage() {
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+
   const [tab, setTab] = useState<Tab>("today");
   const [timezone, setTimezone] = useState<string | null>(null);
+  const [homeCity, setHomeCity] = useState<string | null>(null);
+
   const [heroWeather, setHeroWeather] = useState<WeatherData | null>(null);
-  const [heroLocationLabel, setHeroLocationLabel] = useState<string | null>(
-    null
-  );
+  const [heroLocationLabel, setHeroLocationLabel] = useState<string | null>(null);
+  const [weatherSummary, setWeatherSummary] = useState<string | null>(null);
+
   const [events, setEvents] = useState<CalendarEventWithWeather[]>([]);
   const [brief, setBrief] = useState<string | null>(null);
+  const [briefGeneratedAt, setBriefGeneratedAt] = useState<Date | null>(null);
+
+  const [weekDays, setWeekDays] = useState<WeekDaySummary[]>([]);
+  const [selectedWeekOffset, setSelectedWeekOffset] = useState(0);
+  const [weekEventsByDay, setWeekEventsByDay] = useState<
+    Record<number, CalendarEventWithWeather[]>
+  >({});
 
   const [loadingHero, setLoadingHero] = useState(false);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [loadingBrief, setLoadingBrief] = useState(false);
+  const [loadingWeek, setLoadingWeek] = useState(false);
 
   const [heroError, setHeroError] = useState<string | null>(null);
   const [eventsError, setEventsError] = useState<string | null>(null);
   const [briefError, setBriefError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-  }, []);
+  const firstName = useMemo(() => {
+    const name = session?.user?.name ?? session?.user?.email ?? "there";
+    return name.split(" ")[0] ?? name;
+  }, [session]);
+
+  const userInitial = useMemo(() => {
+    const name = session?.user?.name ?? session?.user?.email ?? "U";
+    return name.charAt(0).toUpperCase();
+  }, [session]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -130,326 +128,418 @@ export default function HomePage() {
     }
   }, [status, router]);
 
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const profile = await fetchProfile();
+        setTimezone(profile.timezone);
+        setHomeCity(profile.homeCity || getHomeLocation());
+      } catch {
+        setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+        setHomeCity(getHomeLocation());
+      }
+    }
+
+    if (status === "authenticated") {
+      void loadProfile();
+    }
+  }, [status]);
+
+  const fetchWeatherForDay = useCallback(
+    async (dayOffset: number, location: string) => {
+      const day = dayOffset === 0 ? "today" : dayOffset === 1 ? "tomorrow" : String(dayOffset);
+      const params = new URLSearchParams({ location, day });
+      const response = await fetch(`/api/weather?${params}`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      return {
+        weather: data.weather as WeatherData | null,
+        displayName: data.displayName as string | null,
+      };
+    },
+    []
+  );
+
   const resolveHeroWeather = useCallback(
-    async (calendarEvents: CalendarEventWithWeather[], day: Tab) => {
+    async (calendarEvents: CalendarEventWithWeather[], dayOffset: number) => {
       setLoadingHero(true);
       setHeroError(null);
 
       const firstEventWithWeather = calendarEvents.find((event) => event.weather);
       if (firstEventWithWeather?.weather) {
+        const label =
+          firstEventWithWeather.displayName ?? firstEventWithWeather.location;
         setHeroWeather(firstEventWithWeather.weather);
-        setHeroLocationLabel(
-          firstEventWithWeather.displayName ?? firstEventWithWeather.location
+        setHeroLocationLabel(label);
+        setWeatherSummary(
+          buildWeatherSummary(firstEventWithWeather.weather, label)
         );
         setLoadingHero(false);
         return;
       }
 
-      let homeLocation = getHomeLocation();
-      if (!homeLocation) {
-        try {
-          const profile = await fetchProfile();
-          if (profile.homeCity) {
-            homeLocation = profile.homeCity;
-            savePreferences({
-              ...getPreferences(),
-              homeAddress: profile.homeCity,
-            });
-          }
-        } catch {
-          // Profile store unavailable — fall through to settings prompt.
-        }
-      }
-
-      if (!homeLocation) {
+      const location = homeCity;
+      if (!location) {
         setHeroWeather(null);
         setHeroLocationLabel(null);
-        setHeroError(
-          `No events ${day === "today" ? "today" : "tomorrow"}. Set a home address in settings to see weather.`
-        );
+        setWeatherSummary(null);
+        setHeroError("Set your home city in Settings to see weather.");
         setLoadingHero(false);
         return;
       }
 
       try {
-        const params = new URLSearchParams({
-          location: homeLocation,
-          day,
-        });
-        const response = await fetch(`/api/weather?${params.toString()}`, {
-          credentials: "same-origin",
-        });
-
-        if (!response.ok) {
+        const result = await fetchWeatherForDay(dayOffset, location);
+        if (!result?.weather) {
           setHeroWeather(null);
-          setHeroLocationLabel(null);
-          setHeroError(
-            await parseApiError(response, "Failed to load home location weather.")
-          );
+          setWeatherSummary(null);
+          setHeroError("Weather unavailable.");
           return;
         }
-
-        const data = await response.json();
-        setHeroWeather(data.weather ?? null);
-        setHeroLocationLabel(data.displayName ?? homeLocation);
+        const label = result.displayName ?? location;
+        setHeroWeather(result.weather);
+        setHeroLocationLabel(label);
+        setWeatherSummary(buildWeatherSummary(result.weather, label));
       } catch {
-        setHeroWeather(null);
-        setHeroLocationLabel(null);
-        setHeroError("Failed to load home location weather.");
+        setHeroError("Failed to load weather.");
       } finally {
         setLoadingHero(false);
       }
     },
-    []
+    [homeCity, fetchWeatherForDay]
   );
 
-  const fetchEvents = useCallback(async () => {
-    if (!timezone) {
-      return;
-    }
+  const fetchCalendarEvents = useCallback(
+    async (dayOffset: number): Promise<CalendarEventWithWeather[]> => {
+      if (!timezone) return [];
 
-    setLoadingEvents(true);
-    setLoadingHero(true);
-    setEventsError(null);
-
-    try {
-      const params = new URLSearchParams({
-        timezone,
-        day: tab,
-      });
-
-      const response = await fetch(`/api/calendar?${params.toString()}`, {
+      const day =
+        dayOffset === 0 ? "today" : dayOffset === 1 ? "tomorrow" : String(dayOffset);
+      const params = new URLSearchParams({ timezone, day });
+      const response = await fetch(`/api/calendar?${params}`, {
         credentials: "same-origin",
-        headers: {
-          "x-timezone": timezone,
-        },
+        headers: { "x-timezone": timezone },
       });
 
       if (!response.ok) {
-        setEvents([]);
-        setEventsError(
-          await parseApiError(
-            response,
-            `Failed to load calendar events (${response.status}).`
-          )
+        throw new Error(
+          await parseApiError(response, "Failed to load calendar events.")
         );
-        await resolveHeroWeather([], tab);
-        return;
       }
 
       const data = await response.json();
-      const calendarEvents = data.events ?? [];
-      setEvents(calendarEvents);
-      await resolveHeroWeather(calendarEvents, tab);
-    } catch {
-      setEvents([]);
-      setEventsError("Failed to load calendar events. Please try again.");
-      await resolveHeroWeather([], tab);
-    } finally {
-      setLoadingEvents(false);
-    }
-  }, [timezone, tab, resolveHeroWeather]);
+      return data.events ?? [];
+    },
+    [timezone]
+  );
 
   const fetchBrief = useCallback(async () => {
-    if (!timezone) {
-      return;
-    }
-
-    if (tab !== "today") {
-      setBrief(null);
-      setBriefError(null);
-      setLoadingBrief(false);
-      return;
-    }
+    if (!timezone) return;
 
     setLoadingBrief(true);
     setBriefError(null);
 
     try {
       const params = new URLSearchParams({ timezone });
-
-      const response = await fetch(`/api/brief?${params.toString()}`, {
+      const response = await fetch(`/api/brief?${params}`, {
         credentials: "same-origin",
-        headers: {
-          "x-timezone": timezone,
-        },
+        headers: { "x-timezone": timezone },
       });
 
       if (!response.ok) {
         setBrief(null);
         setBriefError(
-          await parseApiError(
-            response,
-            `Failed to load morning brief (${response.status}).`
-          )
+          await parseApiError(response, "Failed to load morning brief.")
         );
         return;
       }
 
-      setBrief(truncateBrief(await response.text()));
+      setBrief(await response.text());
+      setBriefGeneratedAt(new Date());
     } catch {
       setBrief(null);
-      setBriefError("Failed to load morning brief. Please try again.");
+      setBriefError("Failed to load morning brief.");
     } finally {
       setLoadingBrief(false);
     }
-  }, [timezone, tab]);
+  }, [timezone]);
+
+  const loadDayTab = useCallback(
+    async (dayOffset: number) => {
+      if (!timezone) return;
+
+      setLoadingEvents(true);
+      setEventsError(null);
+
+      try {
+        const calendarEvents = await fetchCalendarEvents(dayOffset);
+        setEvents(calendarEvents);
+        await resolveHeroWeather(calendarEvents, dayOffset);
+      } catch (error) {
+        setEvents([]);
+        setEventsError(
+          error instanceof Error ? error.message : "Failed to load events."
+        );
+        await resolveHeroWeather([], dayOffset);
+      } finally {
+        setLoadingEvents(false);
+      }
+    },
+    [timezone, fetchCalendarEvents, resolveHeroWeather]
+  );
+
+  const loadWeekView = useCallback(async () => {
+    if (!timezone) return;
+
+    setLoadingWeek(true);
+    setEventsError(null);
+
+    try {
+      const offsets = [0, 1, 2, 3];
+      const results = await Promise.all(
+        offsets.map(async (offset) => {
+          const calendarEvents = await fetchCalendarEvents(offset);
+          let weather: WeatherData | null = null;
+
+          const eventWeather = calendarEvents.find((e) => e.weather)?.weather;
+          if (eventWeather) {
+            weather = eventWeather;
+          } else if (homeCity) {
+            const result = await fetchWeatherForDay(offset, homeCity);
+            weather = result?.weather ?? null;
+          }
+
+          return { offset, calendarEvents, weather };
+        })
+      );
+
+      const eventsMap: Record<number, CalendarEventWithWeather[]> = {};
+      const summaries: WeekDaySummary[] = results.map(
+        ({ offset, calendarEvents, weather }) => {
+          eventsMap[offset] = calendarEvents;
+          return {
+            offset,
+            dayLabel: getDayLabel(offset, timezone),
+            dateLabel: formatShortDate(offset, timezone),
+            weather,
+            eventCount: calendarEvents.length,
+          };
+        }
+      );
+
+      setWeekEventsByDay(eventsMap);
+      setWeekDays(summaries);
+    } catch (error) {
+      setEventsError(
+        error instanceof Error ? error.message : "Failed to load week view."
+      );
+    } finally {
+      setLoadingWeek(false);
+    }
+  }, [timezone, homeCity, fetchCalendarEvents, fetchWeatherForDay]);
 
   useEffect(() => {
-    if (status !== "authenticated" || !timezone) {
+    if (status !== "authenticated" || !timezone) return;
+
+    if (tab === "week") {
+      void loadWeekView();
       return;
     }
 
-    fetchEvents();
-    fetchBrief();
-  }, [status, timezone, fetchEvents, fetchBrief]);
+    const offset = tab === "tomorrow" ? 1 : 0;
+    void loadDayTab(offset);
+
+    if (tab === "today") {
+      void fetchBrief();
+    } else {
+      setBrief(null);
+      setBriefError(null);
+    }
+  }, [status, timezone, tab, loadDayTab, loadWeekView, fetchBrief]);
+
+  useEffect(() => {
+    if (tab !== "week" || !timezone) return;
+    setEvents(weekEventsByDay[selectedWeekOffset] ?? []);
+    void resolveHeroWeather(
+      weekEventsByDay[selectedWeekOffset] ?? [],
+      selectedWeekOffset
+    );
+  }, [selectedWeekOffset, tab, weekEventsByDay, timezone, resolveHeroWeather]);
 
   if (status !== "authenticated") {
-    return <HomePageLoading />;
+    return (
+      <main className="min-h-screen bg-brand-cream px-4 py-6">
+        <div className="mx-auto max-w-md space-y-4">
+          <CardSkeleton className="h-8 w-48" />
+          <CardSkeleton className="h-24" />
+          <CardSkeleton className="h-40" />
+        </div>
+      </main>
+    );
   }
 
+  const sectionTitle =
+    tab === "week"
+      ? weekDays.find((d) => d.offset === selectedWeekOffset)?.dateLabel ?? "Your Day"
+      : tab === "today"
+        ? "Your Day"
+        : "Tomorrow";
+
+  const isLoading = tab === "week" ? loadingWeek : loadingEvents;
+
   return (
-    <main className="min-h-screen bg-[#EEF2FF] px-4 pb-10 pt-6">
+    <main className="min-h-screen bg-brand-cream px-4 pb-10 pt-6">
       <div className="mx-auto max-w-md">
-        <header className="mb-5 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-900">
-              Don&apos;t Forget
+        <header className="mb-4">
+          <p className="text-sm text-brand-brown/50">
+            {formatDateHeader(timezone)}
+          </p>
+          <div className="mt-1 flex items-start justify-between gap-3">
+            <h1 className="font-serif text-3xl font-bold leading-tight text-brand-brown">
+              Good morning,{" "}
+              <span className="italic text-brand-blue">{firstName}</span>{" "}
+              <Sun
+                className="mb-0.5 inline h-6 w-6 text-amber-400"
+                strokeWidth={2}
+              />
             </h1>
+            <Link
+              href="/settings"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-lg font-serif font-bold text-brand-blue shadow-card"
+              aria-label="Settings"
+            >
+              {userInitial}
+            </Link>
           </div>
-          <SettingsMenu />
         </header>
 
-        <div className="mb-6 flex rounded-2xl bg-white p-1 shadow-sm">
-          {(["today", "tomorrow"] as Tab[]).map((value) => (
+        {loadingHero ? (
+          <CardSkeleton className="mb-5 h-24" />
+        ) : heroError ? (
+          <div className="mb-5">
+            <ErrorMessage message={heroError} />
+          </div>
+        ) : weatherSummary ? (
+          <section className="mb-5 rounded-full bg-[#E4EAF4] px-4 py-3">
+            <p className="flex items-center gap-2 text-sm text-brand-brown/80">
+              {heroWeather && (
+                <WeatherIcon
+                  condition={heroWeather.condition}
+                  className="h-4 w-4 shrink-0 text-amber-500"
+                />
+              )}
+              <span className="truncate">{weatherSummary}</span>
+            </p>
+          </section>
+        ) : null}
+
+        <div className="mb-6 flex rounded-full bg-brand-cream-dark p-1">
+          {(["today", "tomorrow", "week"] as Tab[]).map((value) => (
             <button
               key={value}
               type="button"
               onClick={() => setTab(value)}
-              className={`flex-1 rounded-xl py-2.5 text-sm font-medium transition ${
+              className={`flex-1 rounded-full py-2.5 text-sm font-semibold capitalize transition ${
                 tab === value
-                  ? "bg-[#5B8DEF] text-white shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
+                  ? "bg-white text-brand-brown shadow-card"
+                  : "text-brand-brown/45"
               }`}
             >
-              {value === "today" ? "Today" : "Tomorrow"}
+              {value}
             </button>
           ))}
         </div>
 
-        {loadingHero ? (
-          <CardSkeleton className="mb-4 h-36" />
-        ) : (
-          <section className="mb-4 rounded-3xl bg-gradient-to-br from-[#DDE8FF] to-white p-6 shadow-sm">
-            {heroError ? (
-              <ErrorMessage message={heroError} />
-            ) : (
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-500">
-                    {heroLocationLabel ?? "Weather"}
-                  </p>
-                  <p className="mt-1 text-5xl font-semibold text-slate-900">
-                    {heroWeather ? `${heroWeather.temperatureF}°` : "—"}
-                  </p>
-                  <p className="mt-1 text-base text-slate-600">
-                    {heroWeather
-                      ? capitalize(heroWeather.condition)
-                      : "Weather unavailable"}
-                  </p>
-                </div>
-                {heroWeather && (
-                  <WeatherIcon
-                    condition={heroWeather.condition}
-                    className="text-5xl"
-                  />
-                )}
-              </div>
-            )}
-          </section>
+        {tab === "week" && weekDays.length > 0 && (
+          <WeekDayStrip
+            days={weekDays}
+            selectedOffset={selectedWeekOffset}
+            onSelect={setSelectedWeekOffset}
+          />
         )}
 
         {tab === "today" &&
           (loadingBrief ? (
-            <CardSkeleton className="mb-6 h-28" />
+            <CardSkeleton className="mb-6 h-36" />
           ) : (
-            <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm">
-              <h2 className="mb-3 text-sm font-semibold text-slate-900">
-                Morning Brief
-              </h2>
+            <section className="relative mb-6 overflow-hidden rounded-3xl bg-white p-5 shadow-card">
+              <span className="pointer-events-none absolute -right-1 -top-1 text-sm text-brand-gold opacity-70">
+                ✦
+              </span>
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm text-brand-gold">✦</span>
+                  <h2 className="text-xs font-bold tracking-[0.15em] text-brand-blue">
+                    HEADS UP
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void fetchBrief()}
+                  disabled={loadingBrief}
+                  className="flex items-center gap-1 rounded-full bg-brand-blue/10 px-3 py-1.5 text-xs font-medium text-brand-blue transition hover:bg-brand-blue/15 disabled:opacity-50"
+                >
+                  <RefreshCw
+                    className={`h-3 w-3 ${loadingBrief ? "animate-spin" : ""}`}
+                    strokeWidth={2}
+                  />
+                  Refresh
+                </button>
+              </div>
               {briefError ? (
                 <ErrorMessage message={briefError} />
               ) : (
-                <p className="text-sm leading-relaxed text-slate-600">
-                  {brief ?? "No brief available for today."}
+                <p className="text-sm leading-relaxed text-brand-brown/75">
+                  {brief
+                    ? truncateBrief(brief)
+                    : "No brief available for today."}
+                </p>
+              )}
+              {briefGeneratedAt && (
+                <p className="mt-3 text-xs italic text-brand-brown/40">
+                  Generated today at{" "}
+                  {briefGeneratedAt.toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    timeZone: timezone ?? undefined,
+                  })}
                 </p>
               )}
             </section>
           ))}
 
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-slate-900">
-            {tab === "today" ? "Your Day" : "Tomorrow"}
-          </h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-serif text-xl font-bold italic text-brand-brown">
+              {sectionTitle}
+            </h2>
+            <span className="text-xs text-brand-brown/45">
+              {events.length} event{events.length === 1 ? "" : "s"}
+            </span>
+          </div>
 
-          {loadingEvents ? (
+          {isLoading ? (
             <div className="space-y-3">
-              <CardSkeleton className="h-24" />
-              <CardSkeleton className="h-24" />
-              <CardSkeleton className="h-24" />
+              <CardSkeleton className="h-28" />
+              <CardSkeleton className="h-28" />
             </div>
           ) : eventsError ? (
             <ErrorMessage message={eventsError} />
           ) : events.length === 0 ? (
-            <div className="rounded-3xl bg-white p-6 text-center shadow-sm">
-              <p className="text-sm text-slate-500">
-                No events with locations scheduled for{" "}
-                {tab === "today" ? "today" : "tomorrow"}.
+            <div className="rounded-3xl bg-white p-6 text-center shadow-card">
+              <p className="text-sm text-brand-brown/50">
+                No events with locations scheduled.
               </p>
             </div>
           ) : (
             <div className="space-y-3">
-              {events.map((event) => (
-                <article
+              {events.map((event, index) => (
+                <EventCard
                   key={`${event.title}-${event.startTime}`}
-                  className="rounded-3xl bg-white p-4 shadow-sm"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-[#5B8DEF]">
-                        {formatEventTime(event.startTime, timezone)}
-                      </p>
-                      <h3 className="mt-1 text-base font-semibold text-slate-900">
-                        {event.title}
-                      </h3>
-                      <p className="mt-1 truncate text-sm text-slate-500">
-                        {formatEventLocation(
-                          event.location,
-                          event.displayName
-                        )}
-                      </p>
-                    </div>
-                    {event.weather && (
-                      <div className="flex shrink-0 flex-col items-end gap-1">
-                        <WeatherIcon
-                          condition={event.weather.condition}
-                          className="text-2xl"
-                        />
-                        <span className="text-sm font-medium text-slate-700">
-                          {event.weather.temperatureF}°
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          {capitalize(event.weather.condition)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {event.weather && event.weather.chanceOfRain > 30 && (
-                    <span className="mt-3 inline-flex rounded-full bg-[#E8F0FF] px-3 py-1 text-xs font-medium text-[#3B6FD9]">
-                      🌧 {event.weather.chanceOfRain}% chance of rain
-                    </span>
-                  )}
-                </article>
+                  event={event}
+                  timezone={timezone}
+                  index={index}
+                />
               ))}
             </div>
           )}
