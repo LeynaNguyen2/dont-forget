@@ -21,6 +21,44 @@ function Star({
   );
 }
 
+function CoffeeCupIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 40 44"
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M12 8 C12.5 4 13.5 4 14 8"
+        stroke="#8A7968"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M20 5 C20.5 1 21.5 1 22 5"
+        stroke="#8A7968"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M28 8 C28.5 4 29.5 4 30 8"
+        stroke="#8A7968"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <rect x="7" y="16" width="26" height="16" rx="5" fill="#6B4C35" />
+      <path
+        d="M33 19 C39 19 39 29 33 29"
+        stroke="#6B4C35"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <rect x="9" y="18" width="22" height="3" rx="1.5" fill="#7A5A42" />
+    </svg>
+  );
+}
+
 function DecorativeBackground() {
   return (
     <div
@@ -38,7 +76,7 @@ function DecorativeBackground() {
         <line x1="18" y1="20" x2="18" y2="15" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
         <line x1="18" y1="20" x2="22" y2="22" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
-      <Star size={16} className="absolute left-3 top-[104px] rotate-[12deg]" />
+      <Star size={18} className="absolute left-2 top-[98px] rotate-[10deg]" />
 
       {/* top right — sun */}
       <svg
@@ -62,27 +100,13 @@ function DecorativeBackground() {
       </svg>
 
       {/* large star — right of tagline pill */}
-      <Star size={22} className="absolute right-4 top-[212px] -rotate-[8deg]" />
+      <Star size={24} className="absolute right-3 top-[206px] -rotate-[8deg]" />
 
       {/* small star — below Google button, left side */}
-      <Star size={11} className="absolute left-8 top-[392px] rotate-[6deg]" />
+      <Star size={12} className="absolute left-6 top-[378px] rotate-[6deg]" />
 
-      {/* lower left — coffee mug */}
-      <svg
-        className="absolute left-6 top-[58%] h-8 w-8 -rotate-6 opacity-80"
-        viewBox="0 0 32 32"
-        fill="none"
-      >
-        <path
-          d="M6 14 C6 10 9 8 13 8 L19 8 C23 8 26 10 26 14 L26 22 C26 26 23 28 19 28 L13 28 C9 28 6 26 6 22 Z"
-          fill="#8B6914"
-          stroke="#6B5010"
-          strokeWidth="1"
-        />
-        <path d="M26 16 C30 16 32 18 32 20 C32 22 30 24 26 24" stroke="#6B5010" strokeWidth="1.5" fill="none" />
-        <path d="M10 5 Q11 2 13 4" stroke="#A0A0A0" strokeWidth="1" fill="none" strokeLinecap="round" />
-        <path d="M16 4 Q17 1 19 3" stroke="#A0A0A0" strokeWidth="1" fill="none" strokeLinecap="round" />
-      </svg>
+      {/* lower left — coffee cup */}
+      <CoffeeCupIcon className="absolute left-5 top-[54%] h-10 w-10 -rotate-6" />
 
       {/* lower right — umbrella */}
       <svg
@@ -128,20 +152,20 @@ function PreviewCard({
 }) {
   return (
     <div
-      className={`w-[182px] shrink-0 rounded-[24px] bg-[#FBF9F5] p-4 shadow-[0_6px_24px_rgba(61,46,31,0.12)] ${tilt}`}
+      className={`w-full rounded-3xl bg-[#FBF9F5] p-4 shadow-[0_6px_24px_rgba(61,46,31,0.12)] ${tilt}`}
     >
       <div
         className={`mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium ${weatherPillClass}`}
       >
         {weatherIcon}
         <span>{temp}</span>
-        <span className="text-[#4A3F35]/35">·</span>
+        <span className="text-[#6B5744]/40">·</span>
         <span>{time}</span>
       </div>
       <h3 className="font-serif text-[16px] font-bold leading-snug text-[#4A3F35]">
         {title}
       </h3>
-      <p className="mt-1 font-serif text-[12px] text-[#4A3F35]/55">{location}</p>
+      <p className="mt-1 font-serif text-[12px] text-[#6B5744]/70">{location}</p>
       <div
         className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold ${footerClass}`}
       >
@@ -183,48 +207,49 @@ function GoogleSignInLink() {
 
 export default function SignInPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#F5F2E8]">
+    <main className="relative min-h-screen bg-[#F5F2E8]">
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-b from-[#F5F2E8]/0 via-[#C8D4EF]/60 to-[#A8B8E0]/95" />
 
       <DecorativeBackground />
 
-      <div className="relative mx-auto flex min-h-screen max-w-[390px] flex-col px-7 pb-5 pt-14">
+      <div className="relative mx-auto flex min-h-screen max-w-[390px] flex-col px-5 pb-8 pt-14">
         <div className="flex flex-col items-center">
           <div className="relative flex flex-col items-center">
-            <span className="font-serif text-[52px] font-normal italic leading-none tracking-tight text-black -rotate-[2deg]">
+            <span
+              className="font-serif text-[50px] italic leading-none tracking-tight text-black -rotate-[2deg]"
+              style={{ fontWeight: 400 }}
+            >
               Don&apos;t
             </span>
-            <span className="mt-3 inline-block rotate-[2deg] rounded-[18px] bg-[#4A80F0] px-7 py-1.5 font-serif text-[40px] font-bold leading-none text-white shadow-[0_4px_16px_rgba(74,128,240,0.35)]">
+            <span className="mt-3 inline-block rotate-[2deg] rounded-[18px] bg-[#4A80F0] px-7 py-1.5 font-serif text-[42px] font-bold leading-none text-white shadow-[0_4px_16px_rgba(74,128,240,0.35)]">
               Forget
             </span>
           </div>
 
-          <p className="mt-5 rounded-full border border-dashed border-[#4A3F35]/25 bg-[#F5F2E8] px-5 py-2 font-serif text-[13px] italic text-[#4A3F35]/80">
+          <p className="mt-5 rounded-full border border-dashed border-[#6B5744]/30 bg-[#F5F2E8] px-5 py-2 font-serif text-[14px] italic text-[#6B5744]">
             Your day, already figured out.
           </p>
         </div>
 
-        <div className="mt-9 w-full">
+        <div className="mt-8 w-full">
           <GoogleSignInLink />
         </div>
 
-        <p className="mx-auto mt-5 max-w-[260px] text-center font-serif text-[11px] italic leading-relaxed text-[#4A3F35]/65">
+        <p className="mx-auto mt-5 max-w-[280px] text-center font-serif text-[13px] italic leading-relaxed text-[#6B5744]">
           We read your calendar to personalize your morning. We never edit or
           share it.
         </p>
 
-        <div className="mx-auto mt-4 rotate-[1deg] rounded-full border border-[#4A80F0]/35 bg-[#DDE4FF]/25 px-5 py-1.5 font-sans text-[9px] font-semibold tracking-[0.18em] text-[#4A80F0]">
+        <div className="mx-auto mt-4 rotate-[1deg] rounded-full border border-[#4A80F0]/50 bg-[#E8EEFC] px-5 py-2 font-sans text-[10px] font-bold tracking-[0.16em] text-[#4A80F0]">
           PRIVATE · SECURE · YOURS
         </div>
 
-        <div className="flex-1" />
-
-        <div className="relative mt-6">
-          <hr className="mb-4 border-0 border-t border-[#4A3F35]/12" />
-          <p className="mb-4 text-center font-serif text-[13px] italic text-[#4A3F35]/55">
+        <div className="mt-10">
+          <hr className="mb-4 border-0 border-t border-[#6B5744]/15" />
+          <p className="mb-4 text-center font-serif text-[14px] italic text-[#6B5744]">
             a peek at your mornings
           </p>
-          <div className="flex justify-center gap-3 overflow-hidden px-1">
+          <div className="grid grid-cols-2 gap-3 px-1">
             <PreviewCard
               tilt="-rotate-[3deg]"
               weatherIcon={
