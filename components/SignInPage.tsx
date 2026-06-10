@@ -104,13 +104,16 @@ function DecorativeBackground() {
 
       {/* small star — below Google button, left side */}
       <Star size={12} className="absolute left-6 top-[378px] rotate-[6deg]" />
+    </div>
+  );
+}
 
-      {/* lower left — coffee cup */}
-      <CoffeeCupIcon className="absolute left-5 top-[54%] h-10 w-10 -rotate-6" />
-
-      {/* lower right — umbrella */}
+function MiddleDecorations() {
+  return (
+    <div className="pointer-events-none relative min-h-[140px] flex-1" aria-hidden>
+      <CoffeeCupIcon className="absolute left-5 top-1/2 h-10 w-10 -translate-y-1/2 -rotate-6" />
       <svg
-        className="absolute right-7 top-[56%] h-9 w-9 rotate-6 opacity-85"
+        className="absolute right-7 top-1/2 h-9 w-9 -translate-y-1/2 rotate-6 opacity-85"
         viewBox="0 0 36 36"
         fill="none"
       >
@@ -244,7 +247,9 @@ export default function SignInPage() {
           PRIVATE · SECURE · YOURS
         </div>
 
-        <div className="mt-10">
+        <MiddleDecorations />
+
+        <div className="mt-auto">
           <hr className="mb-4 border-0 border-t border-[#6B5744]/15" />
           <p className="mb-4 text-center font-serif text-[14px] italic text-[#6B5744]">
             a peek at your mornings
