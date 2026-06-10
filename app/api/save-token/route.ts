@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
-    const session = await getSession(request);
+    const session = await getSession();
 
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const sessionCookie = getSessionCookieHeader(request);
+    const sessionCookie = getSessionCookieHeader();
     if (!sessionCookie) {
       return NextResponse.json(
         { error: "Missing session cookie." },

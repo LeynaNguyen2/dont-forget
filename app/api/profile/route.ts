@@ -21,7 +21,7 @@ const NOTIFICATION_TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const session = await getSession(request);
+  const session = await getSession();
 
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const session = await getSession(request);
+  const session = await getSession();
 
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });

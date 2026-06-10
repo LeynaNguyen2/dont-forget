@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getTimezoneFromRequest } from "@/lib/datetime";
 import { generateMorningBrief } from "@/lib/morning-brief";
-import { getSession, getSessionCookieHeader } from "@/lib/session";
+import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const session = await getSession(request);
+    const session = await getSession();
     if (!session?.accessToken || session.error === "RefreshAccessTokenError") {
       return NextResponse.json(
         {
@@ -32,17 +32,8 @@ export async function GET(request: Request) {
       );
     }
 
-    const sessionCookie = getSessionCookieHeader(request);
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: "Unauthorized. Please sign in." },
-        { status: 401 }
-      );
-    }
-
     const brief = await generateMorningBrief({
-      origin: new URL(request.url).origin,
-      sessionCookie,
+      accessToken: session.accessToken,
       timezone,
     });
 

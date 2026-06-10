@@ -4,6 +4,7 @@ import {
   type CalendarEventWithWeather,
   formatEventsForPrompt,
 } from "@/lib/brief";
+import { getCalendarEventsWithWeather } from "@/lib/calendar-events";
 
 interface CalendarApiResponse {
   events?: CalendarEventWithWeather[];
@@ -11,6 +12,20 @@ interface CalendarApiResponse {
 }
 
 export async function generateMorningBrief(options: {
+  accessToken: string;
+  timezone: string;
+  dayOffset?: number;
+}): Promise<string> {
+  const events = await getCalendarEventsWithWeather(
+    options.accessToken,
+    options.timezone,
+    options.dayOffset ?? 0
+  );
+  const userPrompt = formatEventsForPrompt(events);
+  return generateBrief(BRIEF_SYSTEM_PROMPT, userPrompt);
+}
+
+export async function generateMorningBriefFromSessionCookie(options: {
   origin: string;
   sessionCookie: string;
   timezone: string;

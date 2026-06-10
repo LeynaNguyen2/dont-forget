@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
+import { getCalendarEventsWithWeather } from "@/lib/calendar-events";
 import { getDayFromRequest, getDayWindow, getTimezoneFromRequest } from "@/lib/datetime";
-import { geocodeLocation } from "@/lib/geocode";
-import { fetchTodayEvents } from "@/lib/google-calendar";
 import { getSession } from "@/lib/session";
-import { getWeather } from "@/lib/weather";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
-    const session = await getSession(request);
+    const session = await getSession();
 
     if (!session?.accessToken || session.error === "RefreshAccessTokenError") {
       return NextResponse.json(
@@ -36,43 +34,16 @@ export async function GET(request: Request) {
 
     const dayOffset = getDayFromRequest(request);
 
-    let timeMin: string;
-    let timeMax: string;
-
     try {
-      ({ timeMin, timeMax } = getDayWindow(timezone, dayOffset));
+      getDayWindow(timezone, dayOffset);
     } catch {
-      return NextResponse.json(
-        { error: "Invalid timezone." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid timezone." }, { status: 400 });
     }
 
-    const events = await fetchTodayEvents(
+    const eventsWithCoordinates = await getCalendarEventsWithWeather(
       session.accessToken,
-      timeMin,
-      timeMax
-    );
-
-    const eventsWithCoordinates = await Promise.all(
-      events.map(async (event) => {
-        const geocoded = await geocodeLocation(event.location);
-        const lat = geocoded?.lat ?? null;
-        const lon = geocoded?.lon ?? null;
-
-        const weather =
-          lat !== null && lon !== null
-            ? await getWeather(lat, lon, dayOffset)
-            : null;
-
-        return {
-          ...event,
-          lat,
-          lon,
-          displayName: geocoded?.displayName ?? null,
-          weather,
-        };
-      })
+      timezone,
+      dayOffset
     );
 
     return NextResponse.json({ events: eventsWithCoordinates });

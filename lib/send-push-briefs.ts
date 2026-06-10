@@ -1,4 +1,4 @@
-import { generateMorningBrief } from "@/lib/morning-brief";
+import { generateMorningBriefFromSessionCookie } from "@/lib/morning-brief";
 import {
   getAllPushSubscriptions,
   removePushSubscription,
@@ -19,7 +19,7 @@ export async function sendPushBriefsToAll(
   const results = await Promise.all(
     subscriptions.map(async (record): Promise<PushBriefResult> => {
       try {
-        const brief = await generateMorningBrief({
+        const brief = await generateMorningBriefFromSessionCookie({
           origin,
           sessionCookie: record.sessionCookie,
           timezone: record.timezone,
