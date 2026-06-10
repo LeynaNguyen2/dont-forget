@@ -1,10 +1,33 @@
+function Star({
+  size,
+  className = "",
+}: {
+  size: number;
+  className?: string;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      className={className}
+      aria-hidden
+    >
+      <path
+        fill="#C9A84C"
+        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+      />
+    </svg>
+  );
+}
+
 function DecorativeBackground() {
   return (
     <div
       className="pointer-events-none absolute inset-0 overflow-hidden"
       aria-hidden
     >
-      {/* top left — alarm clock + star */}
+      {/* top left — alarm clock + medium star */}
       <svg
         className="absolute left-5 top-[72px] h-9 w-9 -rotate-12 opacity-90"
         viewBox="0 0 36 36"
@@ -15,7 +38,7 @@ function DecorativeBackground() {
         <line x1="18" y1="20" x2="18" y2="15" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
         <line x1="18" y1="20" x2="22" y2="22" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
       </svg>
-      <span className="absolute left-[52px] top-[108px] text-[11px] text-[#C9A84C]">✦</span>
+      <Star size={16} className="absolute left-3 top-[104px] rotate-[12deg]" />
 
       {/* top right — sun */}
       <svg
@@ -38,12 +61,11 @@ function DecorativeBackground() {
         ))}
       </svg>
 
-      {/* middle left — star */}
-      <span className="absolute left-7 top-[38%] text-xs text-[#C9A84C] opacity-80">✦</span>
+      {/* large star — right of tagline pill */}
+      <Star size={22} className="absolute right-4 top-[212px] -rotate-[8deg]" />
 
-      {/* middle right — two stars */}
-      <span className="absolute right-10 top-[36%] text-[10px] text-[#C9A84C] opacity-75">✦</span>
-      <span className="absolute right-6 top-[40%] text-[13px] text-[#C9A84C] opacity-80">✦</span>
+      {/* small star — below Google button, left side */}
+      <Star size={11} className="absolute left-8 top-[392px] rotate-[6deg]" />
 
       {/* lower left — coffee mug */}
       <svg
@@ -106,22 +128,22 @@ function PreviewCard({
 }) {
   return (
     <div
-      className={`w-[168px] shrink-0 rounded-[22px] bg-[#FAF8F4] p-3.5 shadow-[0_4px_20px_rgba(61,46,31,0.1)] ${tilt}`}
+      className={`w-[182px] shrink-0 rounded-[24px] bg-[#FBF9F5] p-4 shadow-[0_6px_24px_rgba(61,46,31,0.12)] ${tilt}`}
     >
       <div
-        className={`mb-2.5 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium ${weatherPillClass}`}
+        className={`mb-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium ${weatherPillClass}`}
       >
         {weatherIcon}
         <span>{temp}</span>
         <span className="text-[#4A3F35]/35">·</span>
         <span>{time}</span>
       </div>
-      <h3 className="font-serif text-[15px] font-bold leading-snug text-[#4A3F35]">
+      <h3 className="font-serif text-[16px] font-bold leading-snug text-[#4A3F35]">
         {title}
       </h3>
-      <p className="mt-0.5 font-serif text-[11px] text-[#4A3F35]/55">{location}</p>
+      <p className="mt-1 font-serif text-[12px] text-[#4A3F35]/55">{location}</p>
       <div
-        className={`mt-2.5 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium ${footerClass}`}
+        className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold ${footerClass}`}
       >
         {footerIcon}
         <span>{footerText}</span>
@@ -162,18 +184,17 @@ function GoogleSignInLink() {
 export default function SignInPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#F5F2E8]">
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[48%] bg-gradient-to-b from-transparent via-[#DDE4FF]/30 to-[#DDE4FF]/70" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-b from-[#F5F2E8]/0 via-[#C8D4EF]/60 to-[#A8B8E0]/95" />
 
       <DecorativeBackground />
 
       <div className="relative mx-auto flex min-h-screen max-w-[390px] flex-col px-7 pb-5 pt-14">
-        {/* logo */}
         <div className="flex flex-col items-center">
           <div className="relative flex flex-col items-center">
-            <span className="font-serif text-[52px] font-bold italic leading-none tracking-tight text-black -rotate-[2deg]">
+            <span className="font-serif text-[52px] font-normal italic leading-none tracking-tight text-black -rotate-[2deg]">
               Don&apos;t
             </span>
-            <span className="-mt-1 inline-block rotate-[2deg] rounded-[18px] bg-[#4A80F0] px-7 py-1.5 font-serif text-[40px] font-bold leading-none text-white shadow-[0_4px_16px_rgba(74,128,240,0.35)]">
+            <span className="mt-3 inline-block rotate-[2deg] rounded-[18px] bg-[#4A80F0] px-7 py-1.5 font-serif text-[40px] font-bold leading-none text-white shadow-[0_4px_16px_rgba(74,128,240,0.35)]">
               Forget
             </span>
           </div>
@@ -198,16 +219,16 @@ export default function SignInPage() {
 
         <div className="flex-1" />
 
-        <div className="mt-6">
+        <div className="relative mt-6">
           <hr className="mb-4 border-0 border-t border-[#4A3F35]/12" />
-          <p className="mb-3.5 text-center font-serif text-[13px] italic text-[#4A3F35]/55">
+          <p className="mb-4 text-center font-serif text-[13px] italic text-[#4A3F35]/55">
             a peek at your mornings
           </p>
-          <div className="flex justify-center gap-2.5 overflow-hidden">
+          <div className="flex justify-center gap-3 overflow-hidden px-1">
             <PreviewCard
               tilt="-rotate-[3deg]"
               weatherIcon={
-                <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <svg className="h-3.5 w-3.5" viewBox="0 0 12 12" fill="none" aria-hidden>
                   <circle cx="6" cy="6" r="3" fill="#F5D76E" />
                   {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
                     <line
@@ -223,26 +244,26 @@ export default function SignInPage() {
                   ))}
                 </svg>
               }
-              weatherPillClass="bg-[#FFF8E7] text-[#4A3F35]"
+              weatherPillClass="bg-[#FFF3D6] text-[#4A3F35]"
               temp="72°"
               time="1:00 PM"
               title="Lunch with Maya"
               location="Tartine Manufactory"
               footerIcon={
-                <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <svg className="h-3.5 w-3.5" viewBox="0 0 12 12" fill="none" aria-hidden>
                   <rect x="1" y="4" width="7" height="4" rx="1" fill="#8B6914" />
                   <rect x="8" y="5" width="3" height="2" rx="0.5" fill="#6B5010" />
-                  <circle cx="3" cy="9" r="1.2" fill="#4A3F35" />
-                  <circle cx="7" cy="9" r="1.2" fill="#4A3F35" />
+                  <circle cx="3" cy="9" r="1.2" fill="#5C4A32" />
+                  <circle cx="7" cy="9" r="1.2" fill="#5C4A32" />
                 </svg>
               }
               footerText="18 min drive"
-              footerClass="bg-[#FFF8E7]/90 text-[#4A3F35]/70"
+              footerClass="bg-[#EDE0C4] text-[#5C4A32]"
             />
             <PreviewCard
               tilt="rotate-[2deg]"
               weatherIcon={
-                <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <svg className="h-3.5 w-3.5" viewBox="0 0 12 12" fill="none" aria-hidden>
                   <path
                     d="M2 7 C2 4.5 4 3 6 3 C7.5 3 8.5 3.8 9 5 C10.5 5 11.5 6 11.5 7.5 C11.5 8.5 10.8 9.2 9.8 9.5 L2 9.5 Z"
                     fill="#8BB8E8"
@@ -257,7 +278,7 @@ export default function SignInPage() {
               title="Dinner at Nopa"
               location="560 Divisadero St"
               footerIcon={
-                <svg className="h-3 w-3" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <svg className="h-3.5 w-3.5" viewBox="0 0 12 12" fill="none" aria-hidden>
                   <path
                     d="M1 6 C1 3 3.5 1.5 6 1.5 C8.5 1.5 11 3 11 6 L1 6 Z"
                     fill="#6BAAE8"
@@ -266,7 +287,7 @@ export default function SignInPage() {
                 </svg>
               }
               footerText="Pack umbrella"
-              footerClass="border border-[#4A80F0]/25 bg-white text-[#4A80F0]"
+              footerClass="border border-[#4A80F0] bg-[#EEF3FF] text-[#4A80F0]"
             />
           </div>
         </div>
