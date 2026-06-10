@@ -12,6 +12,31 @@ interface GoogleTokenResponse {
   error_description?: string;
 }
 
+export function getAuthBaseUrl(): string {
+  const configured = process.env.NEXTAUTH_URL?.trim();
+  if (configured) {
+    return configured.replace(/\/$/, "");
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`.replace(/\/$/, "");
+  }
+
+  return "http://localhost:3000";
+}
+
+function decodeIfEncoded(url: string): string {
+  if (!/%[0-9A-Fa-f]{2}/.test(url)) {
+    return url;
+  }
+
+  try {
+    return decodeURIComponent(url);
+  } catch {
+    return url;
+  }
+}
+
 async function refreshGoogleAccessToken(token: JWT): Promise<JWT> {
   if (!token.refreshToken) {
     return { ...token, error: "RefreshAccessTokenError" };
@@ -85,6 +110,24 @@ export const authOptions: NextAuthOptions = {
     signIn: "/signin",
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      const resolvedBaseUrl = getAuthBaseUrl() || baseUrl.replace(/\/$/, "");
+      const target = decodeIfEncoded(url);
+
+      if (target.startsWith("/")) {
+        return `${resolvedBaseUrl}${target}`;
+      }
+
+      try {
+        if (new URL(target).origin === new URL(resolvedBaseUrl).origin) {
+          return target;
+        }
+      } catch {
+        return resolvedBaseUrl;
+      }
+
+      return resolvedBaseUrl;
+    },
     async jwt({ token, account }) {
       if (account) {
         return {

@@ -1,9 +1,8 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import ErrorBoundary from "@/components/ErrorBoundary";
 import HomePage from "@/components/HomePage";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import {
   getPostAuthRedirectPath,
   getUserProfileOrDefault,
@@ -13,7 +12,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
 
   if (!session?.user?.email) {
     redirect("/signin");

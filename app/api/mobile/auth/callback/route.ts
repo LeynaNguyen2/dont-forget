@@ -1,8 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 
 const SESSION_COOKIE_KEY = "next-auth.session-token";
 const SECURE_SESSION_COOKIE_KEY = "__Secure-next-auth.session-token";
@@ -16,7 +15,7 @@ function redirectToApp(params: Record<string, string>): NextResponse {
 }
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
 
   if (!session?.user) {
     return redirectToApp({ error: "unauthorized" });

@@ -1,10 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Playfair_Display, DM_Sans } from "next/font/google";
-import { getServerSession } from "next-auth";
 
 import AuthProvider from "@/components/AuthProvider";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -53,7 +52,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession(authOptions);
+  const session = await getSession();
 
   return (
     <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
