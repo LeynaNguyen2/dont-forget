@@ -1,31 +1,30 @@
 import type { WeatherData } from "@/lib/weather";
 
-function capitalize(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
+function shortenLocation(location: string): string {
+  const parts = location.split(",").map((part) => part.trim());
+  if (parts.length >= 2 && parts[0].length < 40) {
+    return parts[0];
+  }
+  return location.length > 32 ? `${location.slice(0, 32)}…` : location;
 }
 
 export function buildWeatherSummary(
   weather: WeatherData,
   location: string
 ): string {
-  const temp = weather.temperatureF;
-  const condition = weather.condition;
+  const place = shortenLocation(location);
+  const { condition, chanceOfRain } = weather;
 
-  let detail = `${capitalize(condition)} skies`;
+  let detail = "Comfortable conditions expected.";
   if (condition === "sunny" || condition === "clear") {
-    detail = "Clear skies this morning, staying sunny through the afternoon";
-  } else if (condition === "rain" || weather.chanceOfRain > 50) {
-    detail = `${weather.chanceOfRain}% chance of rain — keep an umbrella handy`;
+    detail = "Clear skies, staying sunny through the afternoon.";
+  } else if (condition === "rain" || chanceOfRain > 50) {
+    detail = `${chanceOfRain}% chance of rain — bring an umbrella.`;
   } else if (condition === "cloudy") {
-    detail = "Partly cloudy with comfortable temperatures";
+    detail = "Partly cloudy with mild temperatures.";
+  } else if (condition === "windy") {
+    detail = "Breezy today — light jacket recommended.";
   }
 
-  const wind =
-    weather.windSpeed > 12
-      ? " Breezy conditions expected."
-      : condition === "sunny"
-        ? " Light breeze."
-        : "";
-
-  return `${temp}° now in ${location} · ${detail}.${wind}`;
+  return `${weather.temperatureF}° now in ${place} · ${detail}`;
 }

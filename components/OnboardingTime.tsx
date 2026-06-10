@@ -1,5 +1,6 @@
 "use client";
 
+import { AlarmClock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -78,7 +79,15 @@ export default function OnboardingTime() {
   return (
     <OnboardingShell>
       <ProgressBar step={2} total={2} />
-      <StepBadge icon="⏰" label="STEP TWO" />
+      <StepBadge
+        icon={
+          <AlarmClock
+            className="h-3.5 w-3.5 text-brand-blue"
+            strokeWidth={2}
+          />
+        }
+        label="STEP TWO"
+      />
 
       <h1 className="font-serif text-4xl font-bold leading-tight text-brand-brown">
         When should we check in?

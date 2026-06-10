@@ -29,7 +29,7 @@ export async function generateBrief(
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-5",
-      max_tokens: 512,
+      max_tokens: 200,
       system: systemPrompt,
       messages: [
         {

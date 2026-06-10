@@ -9,6 +9,10 @@ export interface WeekDaySummary {
   eventCount: number;
 }
 
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export default function WeekDayStrip({
   days,
   selectedOffset,
@@ -32,39 +36,47 @@ export default function WeekDayStrip({
             className={`flex min-w-[5.5rem] shrink-0 flex-col items-center rounded-3xl px-3 py-4 transition ${
               selected
                 ? "bg-white shadow-card"
-                : "bg-transparent text-brand-brown/50"
+                : "bg-transparent"
             }`}
           >
             <span
               className={`text-xs font-bold tracking-wide ${
-                selected ? "text-brand-blue" : ""
+                selected ? "text-brand-blue" : "text-brand-brown/40"
               }`}
             >
               {day.dayLabel}
             </span>
             <WeatherIcon
               condition={condition}
-              className={`my-2 ${selected ? "text-2xl" : "text-xl opacity-70"}`}
+              className={`my-2 ${
+                selected
+                  ? "h-6 w-6 text-amber-500"
+                  : "h-5 w-5 text-brand-brown/35"
+              }`}
             />
             <span
               className={`text-lg font-bold ${
-                selected ? "text-brand-brown" : "text-brand-brown/60"
+                selected ? "text-brand-brown" : "text-brand-brown/50"
               }`}
             >
               {day.weather ? `${day.weather.temperatureF}°` : "—"}
             </span>
-            <span className="mt-0.5 text-[10px] capitalize text-brand-brown/50">
-              {day.weather?.condition ?? "—"}
-            </span>
             <span
-              className={`mt-2 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                selected
-                  ? "bg-brand-blue/10 text-brand-blue"
-                  : "text-brand-brown/40"
+              className={`mt-0.5 text-[10px] capitalize ${
+                selected ? "text-brand-brown/50" : "text-brand-brown/35"
               }`}
             >
-              {day.eventCount} event{day.eventCount === 1 ? "" : "s"}
+              {day.weather ? capitalize(day.weather.condition) : "—"}
             </span>
+            {selected ? (
+              <span className="mt-2 rounded-full bg-brand-blue/10 px-2.5 py-0.5 text-[10px] font-medium text-brand-blue">
+                {day.eventCount} event{day.eventCount === 1 ? "" : "s"}
+              </span>
+            ) : (
+              <span className="mt-2 text-[10px] text-brand-brown/35">
+                {day.eventCount} event{day.eventCount === 1 ? "" : "s"}
+              </span>
+            )}
           </button>
         );
       })}

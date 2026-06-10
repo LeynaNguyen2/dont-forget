@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import DecorativeBackground from "@/components/ui/DecorativeBackground";
 
 export function ProgressBar({ step, total }: { step: number; total: number }) {
@@ -22,12 +24,12 @@ export function StepBadge({
   icon,
   label,
 }: {
-  icon: string;
+  icon: ReactNode;
   label: string;
 }) {
   return (
     <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-dashed border-brand-brown/25 bg-white/70 px-3 py-1.5">
-      <span className="text-sm">{icon}</span>
+      {icon}
       <span className="text-[10px] font-bold tracking-[0.15em] text-brand-gold">
         {label}
       </span>

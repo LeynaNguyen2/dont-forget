@@ -1,3 +1,6 @@
+import { Car, CloudRain, Sun, Umbrella } from "lucide-react";
+import type { ReactNode } from "react";
+
 import SignInButton from "@/components/SignInButton";
 import DecorativeBackground from "@/components/ui/DecorativeBackground";
 
@@ -14,13 +17,13 @@ function PreviewCard({
   footerClass,
 }: {
   tilt: string;
-  weatherIcon: string;
+  weatherIcon: ReactNode;
   weatherPillClass: string;
   temp: string;
   time: string;
   title: string;
   location: string;
-  footerIcon: string;
+  footerIcon: ReactNode;
   footerText: string;
   footerClass: string;
 }) {
@@ -31,7 +34,7 @@ function PreviewCard({
       <div
         className={`mb-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-medium ${weatherPillClass}`}
       >
-        <span>{weatherIcon}</span>
+        {weatherIcon}
         <span>{temp}</span>
         <span className="text-brand-brown/40">·</span>
         <span>{time}</span>
@@ -43,7 +46,7 @@ function PreviewCard({
       <div
         className={`mt-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium ${footerClass}`}
       >
-        <span>{footerIcon}</span>
+        {footerIcon}
         <span>{footerText}</span>
       </div>
     </div>
@@ -58,10 +61,12 @@ export default function SignInPage() {
 
       <div className="relative mx-auto flex min-h-screen max-w-md flex-col px-6 pb-6 pt-16">
         <div className="flex flex-1 flex-col items-center text-center">
-          <h1 className="font-serif text-5xl font-bold leading-tight text-brand-brown">
-            Don&apos;t{" "}
-            <span className="inline-block rounded-2xl bg-brand-blue px-4 py-1 text-white">
-              Forget
+          <h1 className="font-serif text-5xl font-bold leading-tight">
+            <span className="inline-flex flex-row flex-wrap items-center justify-center gap-x-2">
+              <span className="text-brand-brown">Don&apos;t</span>
+              <span className="inline-block rounded-2xl bg-brand-blue px-4 py-1 text-white">
+                Forget
+              </span>
             </span>
           </h1>
 
@@ -90,25 +95,39 @@ export default function SignInPage() {
           <div className="flex justify-center gap-3 overflow-hidden px-2">
             <PreviewCard
               tilt="-rotate-3"
-              weatherIcon="☀️"
+              weatherIcon={
+                <Sun className="h-3 w-3 text-amber-500" strokeWidth={2} />
+              }
               weatherPillClass="bg-amber-50 text-brand-brown"
               temp="72°"
               time="1:00 PM"
               title="Lunch with Maya"
               location="Tartine Manufactory"
-              footerIcon="🚗"
+              footerIcon={
+                <Car className="h-3 w-3 text-brand-brown/60" strokeWidth={2} />
+              }
               footerText="18 min drive"
               footerClass="bg-amber-50/80 text-brand-brown/70"
             />
             <PreviewCard
               tilt="rotate-2"
-              weatherIcon="🌧"
+              weatherIcon={
+                <CloudRain
+                  className="h-3 w-3 text-sky-500"
+                  strokeWidth={2}
+                />
+              }
               weatherPillClass="bg-sky-50 text-brand-brown"
               temp="57°"
               time="7:00 PM"
               title="Dinner at Nopa"
               location="560 Divisadero St"
-              footerIcon="☂️"
+              footerIcon={
+                <Umbrella
+                  className="h-3 w-3 text-brand-blue"
+                  strokeWidth={2}
+                />
+              }
               footerText="Pack umbrella"
               footerClass="border border-brand-blue/20 bg-white text-brand-blue"
             />

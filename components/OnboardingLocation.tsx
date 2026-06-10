@@ -1,5 +1,6 @@
 "use client";
 
+import { MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -86,7 +87,12 @@ export default function OnboardingLocation() {
   return (
     <OnboardingShell>
       <ProgressBar step={1} total={2} />
-      <StepBadge icon="📍" label="STEP ONE" />
+      <StepBadge
+        icon={
+          <MapPin className="h-3.5 w-3.5 text-brand-blue" strokeWidth={2} />
+        }
+        label="STEP ONE"
+      />
 
       <h1 className="font-serif text-4xl font-bold leading-tight text-brand-brown">
         Where do you start your day?
@@ -104,9 +110,10 @@ export default function OnboardingLocation() {
           YOUR CITY
         </label>
         <div className="relative mt-2">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-brown/40">
-            📍
-          </span>
+          <MapPin
+            className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-brown/35"
+            strokeWidth={2}
+          />
           <input
             type="text"
             value={query}
