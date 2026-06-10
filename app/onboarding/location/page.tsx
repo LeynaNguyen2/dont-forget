@@ -1,14 +1,13 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
-import ErrorBoundary from "@/components/ErrorBoundary";
-import HomePage from "@/components/HomePage";
+import OnboardingLocation from "@/components/OnboardingLocation";
 import { authOptions } from "@/lib/auth";
 import { getUserProfileOrDefault } from "@/lib/user-profile";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+export default async function OnboardingLocationPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
@@ -16,13 +15,9 @@ export default async function Home() {
   }
 
   const profile = await getUserProfileOrDefault(session.user.email);
-  if (!profile.onboardingCompleted) {
-    redirect("/onboarding/location");
+  if (profile.onboardingCompleted) {
+    redirect("/");
   }
 
-  return (
-    <ErrorBoundary>
-      <HomePage />
-    </ErrorBoundary>
-  );
+  return <OnboardingLocation />;
 }

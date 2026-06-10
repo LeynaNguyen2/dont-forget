@@ -26,7 +26,7 @@ export default class ErrorBoundary extends Component<
   render() {
     if (this.state.error) {
       return (
-        <main className="min-h-screen bg-[#EEF2FF] px-4 py-6">
+        <main className="min-h-screen bg-brand-cream px-4 py-6">
           <div className="mx-auto max-w-md pt-20">
             <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
               Something went wrong: {this.state.error.message}

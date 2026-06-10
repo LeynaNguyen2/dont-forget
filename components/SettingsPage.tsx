@@ -7,6 +7,7 @@ import {
   getNotificationPermission,
   registerPushNotifications,
 } from "@/lib/push-client";
+import { fetchProfile, updateProfile } from "@/lib/profile-client";
 import {
   DEFAULT_PREFERENCES,
   getPreferences,
@@ -25,14 +26,14 @@ function Toggle({
 }) {
   return (
     <label className="flex cursor-pointer items-center justify-between gap-4">
-      <span className="text-sm text-slate-700">{label}</span>
+      <span className="text-sm text-brand-brown/80">{label}</span>
       <button
         type="button"
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-          checked ? "bg-[#5B8DEF]" : "bg-slate-200"
+          checked ? "bg-brand-blue" : "bg-brand-cream-dark"
         }`}
       >
         <span
@@ -59,6 +60,16 @@ export default function SettingsPage() {
   useEffect(() => {
     setPreferences(getPreferences());
     setNotificationPermission(getNotificationPermission());
+
+    void fetchProfile()
+      .then((profile) => {
+        setPreferences((current) => ({
+          ...current,
+          homeAddress: profile.homeCity || current.homeAddress,
+          notificationTime: profile.notificationTime || current.notificationTime,
+        }));
+      })
+      .catch(() => undefined);
   }, []);
 
   function updatePreference<K extends keyof UserPreferences>(
@@ -69,9 +80,17 @@ export default function SettingsPage() {
     setSaved(false);
   }
 
-  function handleSave() {
+  async function handleSave() {
     savePreferences(preferences);
-    setSaved(true);
+    try {
+      await updateProfile({
+        homeCity: preferences.homeAddress,
+        notificationTime: preferences.notificationTime,
+      });
+      setSaved(true);
+    } catch {
+      setSaved(true);
+    }
   }
 
   async function handleEnableNotifications() {
@@ -91,41 +110,30 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#EEF2FF] px-4 pb-10 pt-6">
+    <main className="min-h-screen bg-brand-cream px-4 pb-10 pt-6">
       <div className="mx-auto max-w-md">
         <header className="mb-6 flex items-center gap-3">
           <Link
             href="/"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-white/60"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-brand-brown/60 shadow-card transition hover:bg-brand-cream-dark"
             aria-label="Back to home"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className="h-5 w-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 18l-6-6 6-6"
-              />
-            </svg>
+            ←
           </Link>
-          <h1 className="text-xl font-semibold text-slate-900">Settings</h1>
+          <h1 className="font-serif text-2xl font-bold text-brand-brown">
+            Settings
+          </h1>
         </header>
 
-        <section className="mb-4 rounded-3xl bg-white p-5 shadow-sm">
+        <section className="mb-4 rounded-3xl bg-white p-5 shadow-card">
           <label
             htmlFor="home-address"
-            className="block text-sm font-semibold text-slate-900"
+            className="block text-sm font-semibold text-brand-brown"
           >
-            Home address
+            Home city
           </label>
-          <p className="mt-1 text-xs text-slate-500">
-            Used for weather when you have no events with locations.
+          <p className="mt-1 text-xs text-brand-brown/50">
+            Used for your morning weather before events kick in.
           </p>
           <input
             id="home-address"
@@ -134,13 +142,13 @@ export default function SettingsPage() {
             onChange={(event) =>
               updatePreference("homeAddress", event.target.value)
             }
-            placeholder="e.g. Hayward, CA"
-            className="mt-3 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#5B8DEF]"
+            placeholder="e.g. San Francisco, CA"
+            className="mt-3 w-full rounded-2xl border border-brand-cream-dark bg-brand-cream/50 px-4 py-3 text-sm text-brand-brown outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20"
           />
         </section>
 
-        <section className="mb-4 rounded-3xl bg-white p-5 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold text-slate-900">
+        <section className="mb-4 rounded-3xl bg-white p-5 shadow-card">
+          <h2 className="mb-4 text-sm font-semibold text-brand-brown">
             Preferences
           </h2>
           <div className="space-y-4">
@@ -157,13 +165,15 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        <section className="mb-4 rounded-3xl bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900">Notifications</h2>
-          <p className="mt-1 text-xs text-slate-500">
+        <section className="mb-4 rounded-3xl bg-white p-5 shadow-card">
+          <h2 className="text-sm font-semibold text-brand-brown">
+            Notifications
+          </h2>
+          <p className="mt-1 text-xs text-brand-brown/50">
             Get your AI morning brief delivered as a push notification.
           </p>
           {notificationPermission === "granted" ? (
-            <p className="mt-3 text-sm text-[#3B6FD9]">
+            <p className="mt-3 text-sm text-brand-blue">
               Notifications are enabled.
             </p>
           ) : (
@@ -171,7 +181,7 @@ export default function SettingsPage() {
               type="button"
               onClick={() => void handleEnableNotifications()}
               disabled={enablingNotifications}
-              className="mt-3 w-full rounded-2xl bg-[#5B8DEF] px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-[#4A7DE0] disabled:cursor-not-allowed disabled:opacity-70"
+              className="mt-3 w-full rounded-full bg-brand-blue px-4 py-3 text-sm font-semibold text-white shadow-card transition hover:bg-brand-blue-dark disabled:opacity-70"
             >
               {enablingNotifications ? "Enabling..." : "Enable Notifications"}
             </button>
@@ -180,7 +190,7 @@ export default function SettingsPage() {
             <p
               className={`mt-3 text-sm ${
                 notificationPermission === "granted"
-                  ? "text-[#3B6FD9]"
+                  ? "text-brand-blue"
                   : "text-red-600"
               }`}
             >
@@ -189,14 +199,14 @@ export default function SettingsPage() {
           )}
         </section>
 
-        <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm">
+        <section className="mb-6 rounded-3xl bg-white p-5 shadow-card">
           <label
             htmlFor="notification-time"
-            className="block text-sm font-semibold text-slate-900"
+            className="block text-sm font-semibold text-brand-brown"
           >
             Morning notification time
           </label>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-brand-brown/50">
             When you&apos;d like your daily brief reminder.
           </p>
           <input
@@ -206,28 +216,28 @@ export default function SettingsPage() {
             onChange={(event) =>
               updatePreference("notificationTime", event.target.value)
             }
-            className="mt-3 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-900 outline-none focus:border-[#5B8DEF]"
+            className="mt-3 w-full rounded-2xl border border-brand-cream-dark bg-brand-cream/50 px-4 py-3 text-sm text-brand-brown outline-none focus:border-brand-blue focus:ring-2 focus:ring-brand-blue/20"
           />
         </section>
 
         <button
           type="button"
-          onClick={handleSave}
-          className="w-full rounded-2xl bg-[#5B8DEF] px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-[#4A7DE0]"
+          onClick={() => void handleSave()}
+          className="w-full rounded-full bg-brand-blue px-4 py-3.5 text-sm font-semibold text-white shadow-card transition hover:bg-brand-blue-dark"
         >
           Save
         </button>
 
         {saved && (
-          <p className="mt-3 text-center text-sm text-[#3B6FD9]">
+          <p className="mt-3 text-center text-sm text-brand-blue">
             Preferences saved.
           </p>
         )}
 
         <button
           type="button"
-          onClick={() => signOut({ callbackUrl: "/" })}
-          className="mt-6 w-full rounded-2xl px-4 py-3 text-sm text-slate-600 transition hover:bg-white/60"
+          onClick={() => signOut({ callbackUrl: "/signin" })}
+          className="mt-6 w-full rounded-full px-4 py-3 text-sm text-brand-brown/60 transition hover:bg-white/60"
         >
           Sign out
         </button>

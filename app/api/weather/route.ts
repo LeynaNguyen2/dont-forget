@@ -8,7 +8,15 @@ export async function GET(request: Request) {
   const lat = Number(url.searchParams.get("lat"));
   const lon = Number(url.searchParams.get("lon"));
   const day = url.searchParams.get("day");
-  const dayOffset = day === "tomorrow" ? 1 : 0;
+  let dayOffset = 0;
+  if (day === "tomorrow") {
+    dayOffset = 1;
+  } else if (day && day !== "today") {
+    const parsed = Number(day);
+    if (Number.isInteger(parsed) && parsed >= 0 && parsed <= 6) {
+      dayOffset = parsed;
+    }
+  }
 
   let resolvedLat = lat;
   let resolvedLon = lon;

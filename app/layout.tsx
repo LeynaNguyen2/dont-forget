@@ -1,10 +1,23 @@
 import type { Metadata, Viewport } from "next";
+import { Playfair_Display, DM_Sans } from "next/font/google";
 import { getServerSession } from "next-auth";
 
 import AuthProvider from "@/components/AuthProvider";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import { authOptions } from "@/lib/auth";
 import "./globals.css";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  weight: ["400", "600", "700"],
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   title: "Don't Forget",
@@ -32,7 +45,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#3b82f6",
+  themeColor: "#3B6FE8",
 };
 
 export default async function RootLayout({
@@ -43,8 +56,8 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions);
 
   return (
-    <html lang="en">
-      <body className="antialiased">
+    <html lang="en" className={`${playfair.variable} ${dmSans.variable}`}>
+      <body className="font-sans antialiased">
         <AuthProvider session={session}>{children}</AuthProvider>
         <ServiceWorkerRegistration />
       </body>

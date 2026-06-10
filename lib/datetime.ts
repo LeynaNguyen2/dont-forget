@@ -95,5 +95,19 @@ export function getTodayWindow(timeZone: string): {
 export function getDayFromRequest(request: Request): number {
   const url = new URL(request.url);
   const day = url.searchParams.get("day");
-  return day === "tomorrow" ? 1 : 0;
+
+  if (day === "tomorrow") {
+    return 1;
+  }
+
+  if (day === "today" || day === null) {
+    return 0;
+  }
+
+  const parsed = Number(day);
+  if (Number.isInteger(parsed) && parsed >= 0 && parsed <= 6) {
+    return parsed;
+  }
+
+  return 0;
 }
