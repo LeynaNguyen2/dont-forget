@@ -11,15 +11,7 @@ export interface CalendarEventWithWeather {
   weather: WeatherData | null;
 }
 
-export const BRIEF_SYSTEM_PROMPT = `You are a smart morning assistant. Given a list of today's calendar events with weather data for each location, write a punchy morning brief in exactly 3-4 short sentences maximum. Focus on: what to bring (umbrella, jacket), weather differences between locations, and one leave-by time for the most time-sensitive event. Be direct and actionable. No filler phrases like 'Good morning!' or 'Have a great day!' Do not exceed 4 sentences.`;
-
-export function truncateBrief(text: string, maxSentences = 4): string {
-  const sentences = text.match(/[^.!?]+[.!?]+(\s|$)/g);
-  if (!sentences?.length) {
-    return text.trim();
-  }
-  return sentences.slice(0, maxSentences).join(" ").trim();
-}
+export const BRIEF_SYSTEM_PROMPT = `You are a smart morning assistant. Given a list of today's calendar events with weather data for each location, write a concise morning brief in 3-5 sentences. Focus on: what to bring based on rain, wind, and temperature (such as an umbrella or jacket), any significant weather differences between locations, and one leave-by time for the most time-sensitive event. Do not mention UV index or sunscreen. Be direct and practical. No filler phrases like 'Good morning!' or 'Have a great day!'`;
 
 function formatWeather(weather: WeatherData | null): string {
   if (!weather) {

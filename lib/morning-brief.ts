@@ -1,7 +1,6 @@
 import { generateBrief } from "@/lib/anthropic";
 import {
   BRIEF_SYSTEM_PROMPT,
-  truncateBrief,
   type CalendarEventWithWeather,
   formatEventsForPrompt,
 } from "@/lib/brief";
@@ -34,6 +33,5 @@ export async function generateMorningBrief(options: {
 
   const events = data.events ?? [];
   const userPrompt = formatEventsForPrompt(events);
-  const brief = await generateBrief(BRIEF_SYSTEM_PROMPT, userPrompt);
-  return truncateBrief(brief);
+  return generateBrief(BRIEF_SYSTEM_PROMPT, userPrompt);
 }
