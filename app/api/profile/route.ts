@@ -18,8 +18,10 @@ interface ProfileUpdateBody {
 const TIMEZONE_PATTERN = /^[A-Za-z_]+\/[A-Za-z_]+$/;
 const NOTIFICATION_TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
-export async function GET() {
-  const session = await getSession();
+export const dynamic = "force-dynamic";
+
+export async function GET(request: Request) {
+  const session = await getSession(request);
 
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
@@ -38,7 +40,7 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  const session = await getSession();
+  const session = await getSession(request);
 
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });

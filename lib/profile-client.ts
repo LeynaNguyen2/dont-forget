@@ -1,7 +1,7 @@
 import type { UserProfile } from "@/lib/user-profile";
 
 export async function fetchProfile(): Promise<UserProfile> {
-  const response = await fetch("/api/profile", { credentials: "same-origin" });
+  const response = await fetch("/api/profile", { credentials: "include" });
 
   if (!response.ok) {
     throw new Error("Failed to load profile.");
@@ -20,7 +20,7 @@ export async function updateProfile(
 ): Promise<UserProfile> {
   const response = await fetch("/api/profile", {
     method: "PUT",
-    credentials: "same-origin",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(updates),
   });

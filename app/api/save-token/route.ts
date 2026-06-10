@@ -5,16 +5,18 @@ import {
   savePushSubscription,
   type PushSubscriptionPayload,
 } from "@/lib/push-subscriptions";
-import { getSession } from "@/lib/session";
+import { getSession, getSessionCookieHeader } from "@/lib/session";
 
 interface SaveTokenBody {
   subscription?: PushSubscriptionPayload;
   timezone?: string;
 }
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: Request) {
   try {
-    const session = await getSession();
+    const session = await getSession(request);
 
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -41,7 +43,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const sessionCookie = request.headers.get("cookie");
+    const sessionCookie = getSessionCookieHeader(request);
     if (!sessionCookie) {
       return NextResponse.json(
         { error: "Missing session cookie." },

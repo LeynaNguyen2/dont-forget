@@ -5,9 +5,11 @@ import { fetchTodayEvents } from "@/lib/google-calendar";
 import { getSession } from "@/lib/session";
 import { getWeather } from "@/lib/weather";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   try {
-    const session = await getSession();
+    const session = await getSession(request);
 
     if (!session?.accessToken || session.error === "RefreshAccessTokenError") {
       return NextResponse.json(

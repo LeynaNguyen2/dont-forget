@@ -216,7 +216,7 @@ export default function HomePage() {
         dayOffset === 0 ? "today" : dayOffset === 1 ? "tomorrow" : String(dayOffset);
       const params = new URLSearchParams({ timezone, day });
       const response = await fetch(`/api/calendar?${params}`, {
-        credentials: "same-origin",
+        credentials: "include",
         headers: { "x-timezone": timezone },
       });
 
@@ -241,7 +241,7 @@ export default function HomePage() {
     try {
       const params = new URLSearchParams({ timezone });
       const response = await fetch(`/api/brief?${params}`, {
-        credentials: "same-origin",
+        credentials: "include",
         headers: { "x-timezone": timezone },
       });
 
