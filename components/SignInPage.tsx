@@ -27,36 +27,21 @@ function CoffeeCupIcon({ className = "" }: { className?: string }) {
   return (
     <svg
       className={className}
-      viewBox="0 0 40 44"
+      viewBox="0 0 48 52"
       fill="none"
       aria-hidden
     >
+      <rect x="18" y="3" width="3.5" height="9" rx="1.75" fill="#C4A882" />
+      <rect x="26.5" y="1" width="3.5" height="11" rx="1.75" fill="#C4A882" />
+      <rect x="6" y="15" width="30" height="5.5" rx="2.75" fill="#C4A882" />
+      <rect x="8" y="19.5" width="26" height="24" rx="6" fill="#C4A882" />
       <path
-        d="M12 8 C12.5 4 13.5 4 14 8"
-        stroke="#8A7968"
-        strokeWidth="1.6"
+        d="M35 24 C44.5 24 44.5 39 35 39"
+        stroke="#C4A882"
+        strokeWidth="5.5"
         strokeLinecap="round"
+        fill="none"
       />
-      <path
-        d="M20 5 C20.5 1 21.5 1 22 5"
-        stroke="#8A7968"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <path
-        d="M28 8 C28.5 4 29.5 4 30 8"
-        stroke="#8A7968"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <rect x="7" y="16" width="26" height="16" rx="5" fill="#6B4C35" />
-      <path
-        d="M33 19 C39 19 39 29 33 29"
-        stroke="#6B4C35"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-      <rect x="9" y="18" width="22" height="3" rx="1.5" fill="#7A5A42" />
     </svg>
   );
 }
@@ -113,7 +98,7 @@ function DecorativeBackground() {
 function MiddleDecorations() {
   return (
     <div className="pointer-events-none relative min-h-[140px] flex-1" aria-hidden>
-      <CoffeeCupIcon className="absolute left-5 top-1/2 h-10 w-10 -translate-y-1/2 -rotate-6" />
+      <CoffeeCupIcon className="absolute bottom-2 left-5 h-11 w-11 -rotate-6" />
       <svg
         className="absolute right-7 top-1/2 h-9 w-9 -translate-y-1/2 rotate-6 opacity-85"
         viewBox="0 0 36 36"
@@ -188,7 +173,7 @@ export default function SignInPage() {
 
       <DecorativeBackground />
 
-      <div className="relative mx-auto flex min-h-screen max-w-[390px] flex-col px-5 pb-8 pt-14">
+      <div className="relative mx-auto flex min-h-screen max-w-[390px] flex-col px-5 pb-8 pt-[22vh]">
         <div className="flex flex-col items-center">
           <div className="relative flex flex-col items-center">
             <span
