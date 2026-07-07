@@ -1,3 +1,5 @@
+import { MapPin, Umbrella } from "lucide-react";
+
 import WeatherIcon from "@/components/WeatherIcon";
 import type { CalendarEventWithWeather } from "@/lib/brief";
 
@@ -57,21 +59,24 @@ export default function EventCard({
             {event.title}
           </h3>
           {location && (
-            <p className="mt-1.5 flex items-center gap-1 text-sm text-brand-brown/60">
-              <span className="text-xs">📍</span>
+            <p className="mt-1.5 flex items-center gap-1.5 text-sm text-brand-brown/60">
+              <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
               <span className="truncate">{location}</span>
             </p>
           )}
           {showUmbrella && (
-            <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-brand-blue">
-              <span>☂️</span>
+            <p className="mt-1.5 flex items-center gap-1.5 text-xs font-medium text-brand-blue">
+              <Umbrella className="h-3.5 w-3.5 shrink-0" aria-hidden />
               <span>Pack umbrella · {event.weather!.chanceOfRain}% rain</span>
             </p>
           )}
         </div>
         {event.weather && (
           <div className="flex shrink-0 flex-col items-center gap-0.5 rounded-2xl bg-[#E8EDF5] px-3 py-2">
-            <WeatherIcon condition={event.weather.condition} className="text-xl" />
+            <WeatherIcon
+              condition={event.weather.condition}
+              className="h-6 w-6 text-brand-brown/70"
+            />
             <span className="text-sm font-semibold text-brand-brown">
               {event.weather.temperatureF}°
             </span>

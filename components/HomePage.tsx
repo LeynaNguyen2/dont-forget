@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { RefreshCw, Star, Sun } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -397,7 +398,7 @@ export default function HomePage() {
             <h1 className="font-serif text-3xl font-bold leading-tight text-brand-brown">
               Good morning,{" "}
               <span className="italic text-brand-blue">{firstName}</span>{" "}
-              <span className="text-2xl">☀️</span>
+              <Sun className="inline h-6 w-6 text-[#E8C84A]" aria-hidden />
             </h1>
             <Link
               href="/settings"
@@ -421,7 +422,7 @@ export default function HomePage() {
               {heroWeather && (
                 <WeatherIcon
                   condition={heroWeather.condition}
-                  className="mt-0.5 shrink-0 text-lg"
+                  className="mt-0.5 h-5 w-5 shrink-0 text-brand-brown/70"
                 />
               )}
               <span>
@@ -465,12 +466,16 @@ export default function HomePage() {
             <CardSkeleton className="mb-6 h-36" />
           ) : (
             <section className="relative mb-6 overflow-hidden rounded-3xl bg-[#FAFAF8] p-5 shadow-card">
-              <span className="pointer-events-none absolute -right-1 -top-1 text-sm opacity-60">
-                ✦
-              </span>
+              <Star
+                className="pointer-events-none absolute -right-1 -top-1 h-3.5 w-3.5 fill-[#C9A84C] text-[#C9A84C] opacity-60"
+                aria-hidden
+              />
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm">✦</span>
+                  <Star
+                    className="h-3.5 w-3.5 fill-[#C9A84C] text-[#C9A84C]"
+                    aria-hidden
+                  />
                   <h2 className="text-xs font-bold tracking-[0.15em] text-brand-blue">
                     HEADS UP
                   </h2>
@@ -481,7 +486,7 @@ export default function HomePage() {
                   disabled={loadingBrief}
                   className="flex items-center gap-1 rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-medium text-brand-blue transition hover:bg-brand-blue/15 disabled:opacity-50"
                 >
-                  <span>↻</span>
+                  <RefreshCw className="h-3.5 w-3.5" aria-hidden />
                   Refresh
                 </button>
               </div>

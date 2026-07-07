@@ -44,7 +44,9 @@ export default function WeekDayStrip({
             </span>
             <WeatherIcon
               condition={condition}
-              className={`my-2 ${selected ? "text-2xl" : "text-xl opacity-70"}`}
+              className={`my-2 ${
+                selected ? "h-7 w-7 text-brand-brown/80" : "h-6 w-6 opacity-70"
+              }`}
             />
             <span
               className={`text-lg font-bold ${
