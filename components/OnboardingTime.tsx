@@ -143,7 +143,7 @@ export default function OnboardingTime() {
         {error && <p className="mt-4 font-sans text-[14px] text-red-600">{error}</p>}
       </div>
 
-      <div className="relative mt-auto">
+      <div className="relative mt-auto pt-10">
         <button
           type="button"
           onClick={() => void handleComplete()}
