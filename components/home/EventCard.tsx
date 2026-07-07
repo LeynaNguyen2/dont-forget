@@ -46,7 +46,7 @@ export default function EventCard({
     event.weather && event.weather.chanceOfRain > 30;
 
   return (
-    <article className="relative overflow-hidden rounded-3xl bg-white p-4 shadow-card">
+    <article className="relative overflow-hidden rounded-3xl bg-[#FAFAF8] p-4 shadow-card">
       <div className={`absolute bottom-3 left-0 top-3 w-1.5 rounded-full ${accent}`} />
       <div className="flex items-start justify-between gap-3 pl-3">
         <div className="min-w-0 flex-1">
@@ -70,7 +70,7 @@ export default function EventCard({
           )}
         </div>
         {event.weather && (
-          <div className="flex shrink-0 flex-col items-center gap-0.5 rounded-2xl bg-brand-blue/8 px-3 py-2">
+          <div className="flex shrink-0 flex-col items-center gap-0.5 rounded-2xl bg-[#E8EDF5] px-3 py-2">
             <WeatherIcon condition={event.weather.condition} className="text-xl" />
             <span className="text-sm font-semibold text-brand-brown">
               {event.weather.temperatureF}°

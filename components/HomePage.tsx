@@ -35,7 +35,7 @@ async function parseApiError(response: Response, fallback: string): Promise<stri
 function CardSkeleton({ className = "h-32" }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-3xl bg-white/60 shadow-sm ${className}`}
+      className={`animate-pulse rounded-3xl bg-[#E8E3D8]/70 shadow-sm ${className}`}
     />
   );
 }
@@ -367,7 +367,7 @@ export default function HomePage() {
 
   if (status !== "authenticated") {
     return (
-      <main className="min-h-screen bg-brand-cream px-4 py-6">
+      <main className="min-h-screen bg-[#F5F0E8] px-4 py-6">
         <div className="mx-auto max-w-md space-y-4">
           <CardSkeleton className="h-8 w-48" />
           <CardSkeleton className="h-24" />
@@ -387,7 +387,7 @@ export default function HomePage() {
   const isLoading = tab === "week" ? loadingWeek : loadingEvents;
 
   return (
-    <main className="min-h-screen bg-brand-cream px-4 pb-10 pt-6">
+    <main className="min-h-screen bg-[#F5F0E8] px-4 pb-10 pt-6">
       <div className="mx-auto max-w-md">
         <header className="mb-4">
           <p className="text-sm text-brand-brown/50">
@@ -401,7 +401,7 @@ export default function HomePage() {
             </h1>
             <Link
               href="/settings"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-lg font-serif font-bold text-brand-blue shadow-card"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#FAFAF8] text-lg font-serif font-bold text-brand-blue shadow-card"
               aria-label="Settings"
             >
               {userInitial}
@@ -416,7 +416,7 @@ export default function HomePage() {
             <ErrorMessage message={heroError} />
           </div>
         ) : weatherSummary ? (
-          <section className="mb-5 rounded-3xl bg-brand-blue/8 px-4 py-4 shadow-sm">
+          <section className="mb-5 rounded-[24px] bg-[#E8EDF5] px-5 py-4 shadow-sm">
             <p className="flex items-start gap-2 text-sm leading-relaxed text-brand-brown/80">
               {heroWeather && (
                 <WeatherIcon
@@ -435,7 +435,7 @@ export default function HomePage() {
           </section>
         ) : null}
 
-        <div className="mb-6 flex rounded-full bg-brand-cream-dark/80 p-1">
+        <div className="mb-6 flex rounded-full bg-[#E8E3D8] p-1">
           {(["today", "tomorrow", "week"] as Tab[]).map((value) => (
             <button
               key={value}
@@ -443,7 +443,7 @@ export default function HomePage() {
               onClick={() => setTab(value)}
               className={`flex-1 rounded-full py-2.5 text-sm font-semibold capitalize transition ${
                 tab === value
-                  ? "bg-white text-brand-brown shadow-card"
+                  ? "bg-[#FAFAF8] text-brand-brown shadow-card"
                   : "text-brand-brown/45"
               }`}
             >
@@ -464,7 +464,7 @@ export default function HomePage() {
           (loadingBrief ? (
             <CardSkeleton className="mb-6 h-36" />
           ) : (
-            <section className="relative mb-6 overflow-hidden rounded-3xl bg-white p-5 shadow-card">
+            <section className="relative mb-6 overflow-hidden rounded-3xl bg-[#FAFAF8] p-5 shadow-card">
               <span className="pointer-events-none absolute -right-1 -top-1 text-sm opacity-60">
                 ✦
               </span>
@@ -507,7 +507,7 @@ export default function HomePage() {
 
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-serif text-xl font-bold text-brand-brown">
+            <h2 className="font-serif text-xl font-bold italic text-brand-brown">
               {sectionTitle}
             </h2>
             <span className="text-xs text-brand-brown/45">
@@ -523,7 +523,7 @@ export default function HomePage() {
           ) : eventsError ? (
             <ErrorMessage message={eventsError} />
           ) : events.length === 0 ? (
-            <div className="rounded-3xl bg-white p-6 text-center shadow-card">
+            <div className="rounded-3xl bg-[#FAFAF8] p-6 text-center shadow-card">
               <p className="text-sm text-brand-brown/50">
                 No events with locations scheduled.
               </p>

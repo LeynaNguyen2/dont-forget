@@ -31,7 +31,7 @@ export default function WeekDayStrip({
             onClick={() => onSelect(day.offset)}
             className={`flex min-w-[5.5rem] shrink-0 flex-col items-center rounded-3xl px-3 py-4 transition ${
               selected
-                ? "bg-white shadow-card"
+                ? "bg-[#FAFAF8] shadow-card"
                 : "bg-transparent text-brand-brown/50"
             }`}
           >
