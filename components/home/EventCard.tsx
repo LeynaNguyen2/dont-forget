@@ -72,15 +72,15 @@ export default function EventCard({
           )}
         </div>
         {event.weather && (
-          <div className="flex shrink-0 flex-col items-center gap-0.5 rounded-2xl bg-[#E8EDF5] px-3 py-2">
+          <div className="flex shrink-0 flex-col items-center gap-1 rounded-2xl bg-gradient-to-b from-[#EEF3FB] to-[#D6E4F5] px-3 py-2.5">
             <WeatherIcon
               condition={event.weather.condition}
               className="h-6 w-6 text-brand-brown/70"
             />
-            <span className="text-sm font-semibold text-brand-brown">
+            <span className="text-sm font-bold text-[#3B6FE8]">
               {event.weather.temperatureF}°
             </span>
-            <span className="text-[10px] text-brand-brown/40">
+            <span className="text-[10px] text-[#6B5744]/50">
               {capitalize(event.weather.condition)}
             </span>
           </div>
