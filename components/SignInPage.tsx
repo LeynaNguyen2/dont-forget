@@ -97,10 +97,10 @@ function DecorativeBackground() {
 
 function MiddleDecorations() {
   return (
-    <div className="pointer-events-none relative min-h-[140px] flex-1" aria-hidden>
-      <CoffeeCupIcon className="absolute bottom-2 left-5 h-11 w-11 -rotate-6" />
+    <div className="pointer-events-none relative mt-2 min-h-[70px]" aria-hidden>
+      <CoffeeCupIcon className="absolute left-5 top-2 h-11 w-11 -rotate-6" />
       <svg
-        className="absolute right-7 top-1/2 h-9 w-9 -translate-y-1/2 rotate-6 opacity-85"
+        className="absolute right-7 top-2 h-9 w-9 rotate-6 opacity-85"
         viewBox="0 0 36 36"
         fill="none"
       >
