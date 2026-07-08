@@ -1,8 +1,11 @@
+export type CalendarEventKind = "physical" | "virtual_meeting" | "no_location";
+
 export interface CalendarEvent {
   title: string;
   startTime: string;
   endTime: string;
   location: string;
+  kind: CalendarEventKind;
 }
 
 export interface GoogleCalendar {
@@ -67,16 +70,23 @@ const VIRTUAL_LOCATION_PATTERNS = [
 ];
 
 export function resolveEventLocation(location: string | undefined | null): string {
+  return classifyEventLocation(location).location;
+}
+
+export function classifyEventLocation(location: string | undefined | null): {
+  location: string;
+  kind: CalendarEventKind;
+} {
   const trimmed = location?.trim() ?? "";
   if (!trimmed) {
-    return "Virtual";
+    return { location: "Virtual", kind: "no_location" };
   }
 
   if (VIRTUAL_LOCATION_PATTERNS.some((pattern) => pattern.test(trimmed))) {
-    return "Virtual";
+    return { location: "Virtual", kind: "virtual_meeting" };
   }
 
-  return trimmed;
+  return { location: trimmed, kind: "physical" };
 }
 
 export function isVirtualLocation(location: string): boolean {
@@ -95,7 +105,7 @@ function mapEvent(event: GoogleCalendarEvent): CalendarEvent | null {
     title: event.summary?.trim() || "Untitled event",
     startTime,
     endTime,
-    location: resolveEventLocation(event.location),
+    ...classifyEventLocation(event.location),
   };
 }
 
