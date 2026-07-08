@@ -16,7 +16,7 @@ function formatPushTitle(firstName?: string): string {
     firstName?.trim() ||
     "there";
   const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
-  return `☀️ Good morning, ${capitalized}!`;
+  return `☀️ Good morning ${capitalized}!`;
 }
 
 export async function sendPushBriefsToAll(

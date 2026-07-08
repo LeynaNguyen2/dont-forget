@@ -92,7 +92,6 @@ self.addEventListener("push", (event) => {
       self.registration.showNotification(payload.title, {
         body: buildNotificationBody(summary),
         icon: payload.icon,
-        requireInteraction: false,
         actions,
         data: {
           url: payload.url ?? "/",
