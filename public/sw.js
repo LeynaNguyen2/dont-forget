@@ -73,6 +73,7 @@ self.addEventListener("push", (event) => {
         data: {
           url: payload.url ?? "/",
           fullBrief: payload.fullBrief || payload.body,
+          summary: payload.body,
           briefDate: briefPayload.date,
           generatedAt,
         },
