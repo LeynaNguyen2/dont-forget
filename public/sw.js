@@ -106,41 +106,8 @@ self.addEventListener("message", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-
-  const targetUrl = event.notification.data?.url ?? "/";
-  const briefPayload = event.notification.data?.fullBrief
-    ? {
-        text: event.notification.data.fullBrief,
-        date:
-          event.notification.data.briefDate ||
-          new Date().toISOString().slice(0, 10),
-        generatedAt:
-          event.notification.data.generatedAt || new Date().toISOString(),
-      }
-    : pendingPushBrief;
-
   event.waitUntil(
-    clients
-      .matchAll({ type: "window", includeUncontrolled: true })
-      .then(async (windowClients) => {
-        for (const client of windowClients) {
-          if (briefPayload) {
-            client.postMessage({ type: "PUSH_BRIEF", brief: briefPayload });
-          }
-
-          if (client.url.startsWith(self.location.origin) && "focus" in client) {
-            if (briefPayload) {
-              client.postMessage({ type: "PUSH_BRIEF", brief: briefPayload });
-            }
-            return client.focus();
-          }
-        }
-
-        const newClient = await clients.openWindow(targetUrl);
-        if (newClient && briefPayload) {
-          newClient.postMessage({ type: "PUSH_BRIEF", brief: briefPayload });
-        }
-      })
+    clients.openWindow("https://dont-forget-kappa.vercel.app/")
   );
 });
 

@@ -22,13 +22,8 @@ export async function generateMorningBrief(options: {
   timezone: string;
   dayOffset?: number;
 }): Promise<string> {
-  const events = await getCalendarEventsWithWeather(
-    options.accessToken,
-    options.timezone,
-    options.dayOffset ?? 0
-  );
-  const userPrompt = formatEventsForPrompt(events);
-  return generateBrief(BRIEF_SYSTEM_PROMPT, userPrompt);
+  const pair = await generateMorningBriefPair(options);
+  return pair.fullBrief;
 }
 
 function getTodayDateKey(timezone: string): string {

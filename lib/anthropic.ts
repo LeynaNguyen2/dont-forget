@@ -61,6 +61,34 @@ export interface MorningBriefPair {
   fullBrief: string;
 }
 
+export function stripMarkdownCodeFences(text: string): string {
+  return text
+    .trim()
+    .replace(/^```(?:json)?\s*\r?\n?/i, "")
+    .replace(/\r?\n?```\s*$/i, "")
+    .trim();
+}
+
+export function parseBriefPairResponse(raw: string): MorningBriefPair {
+  const cleaned = stripMarkdownCodeFences(raw);
+  const jsonText = cleaned.match(/\{[\s\S]*\}/)?.[0] ?? cleaned;
+
+  const parsed = JSON.parse(jsonText) as Partial<MorningBriefPair>;
+  const summary =
+    typeof parsed.summary === "string" ? parsed.summary.trim() : "";
+  const fullBrief =
+    typeof parsed.fullBrief === "string" ? parsed.fullBrief.trim() : "";
+
+  if (!summary || !fullBrief) {
+    throw new Error("Missing summary or fullBrief");
+  }
+
+  return {
+    summary: summary.length > 80 ? `${summary.slice(0, 77)}...` : summary,
+    fullBrief,
+  };
+}
+
 export async function generateBriefPair(
   systemPrompt: string,
   userPrompt: string
@@ -75,24 +103,13 @@ Do not wrap in markdown or code fences.`
   );
 
   try {
-    const parsed = JSON.parse(raw) as MorningBriefPair;
-    const summary = parsed.summary?.trim() ?? "";
-    const fullBrief = parsed.fullBrief?.trim() ?? "";
-
-    if (!summary || !fullBrief) {
-      throw new Error("Missing summary or fullBrief");
-    }
-
-    return {
-      summary: summary.length > 80 ? `${summary.slice(0, 77)}...` : summary,
-      fullBrief,
-    };
+    return parseBriefPairResponse(raw);
   } catch {
-    const fullBrief = raw.trim();
+    const cleaned = stripMarkdownCodeFences(raw);
     return {
-      fullBrief,
+      fullBrief: cleaned,
       summary:
-        fullBrief.length > 80 ? `${fullBrief.slice(0, 77)}...` : fullBrief,
+        cleaned.length > 80 ? `${cleaned.slice(0, 77)}...` : cleaned,
     };
   }
 }
