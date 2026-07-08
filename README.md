@@ -118,15 +118,16 @@ Open [http://localhost:3000](http://localhost:3000) and sign in with Google.
 
 ## Screenshots
 
-<!-- Add screenshots here -->
-
-| Home | Settings |
-| --- | --- |
-| _Screenshot coming soon_ | _Screenshot coming soon_ |
-
-| Onboarding | Morning Brief |
-| --- | --- |
-| _Screenshot coming soon_ | _Screenshot coming soon_ |
+<div align="center">
+<img src="public/screenshots/signin.PNG" width="200" />
+<img src="public/screenshots/today.PNG" width="200" />
+<img src="public/screenshots/onboarding-1.PNG" width="200" />
+<img src="public/screenshots/onboarding-2.PNG" width="200" />
+<img src="public/screenshots/settings-1.PNG" width="200" />
+<img src="public/screenshots/settings-2.PNG" width="200" />
+<img src="public/screenshots/tomorrow.PNG" width="200" />
+<img src="public/screenshots/week.PNG" width="200" />
+</div>
 
 ---
 
