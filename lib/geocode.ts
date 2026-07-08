@@ -15,6 +15,11 @@ interface OpenWeatherGeocodeResult {
 interface GoogleGeocodeResponse {
   results?: Array<{
     formatted_address: string;
+    address_components?: Array<{
+      long_name: string;
+      short_name: string;
+      types: string[];
+    }>;
     geometry: {
       location: {
         lat: number;
@@ -29,12 +34,6 @@ interface GoogleGeocodeResponse {
 interface SimplifiedQueries {
   primary: string;
   fallback: string | null;
-}
-
-function formatOpenWeatherDisplayName(
-  result: OpenWeatherGeocodeResult
-): string {
-  return [result.name, result.state, result.country].filter(Boolean).join(", ");
 }
 
 function isCountry(part: string): boolean {
@@ -217,8 +216,29 @@ async function queryOpenWeatherGeocodeApi(
   return {
     lat: result.lat,
     lon: result.lon,
-    displayName: formatOpenWeatherDisplayName(result),
+    displayName: result.name,
   };
+}
+
+function extractGoogleLocality(
+  components: Array<{
+    long_name: string;
+    short_name: string;
+    types: string[];
+  }>
+): string | null {
+  const findType = (...types: string[]) =>
+    components.find((component) =>
+      types.some((type) => component.types.includes(type))
+    );
+
+  return (
+    findType("locality")?.long_name ??
+    findType("postal_town")?.long_name ??
+    findType("sublocality", "sublocality_level_1")?.long_name ??
+    findType("administrative_area_level_2")?.long_name ??
+    null
+  );
 }
 
 async function queryGoogleGeocodeApi(
@@ -265,10 +285,15 @@ async function queryGoogleGeocodeApi(
     return null;
   }
 
+  const cityName =
+    extractGoogleLocality(result.address_components ?? []) ??
+    result.formatted_address.split(",")[0]?.trim() ??
+    result.formatted_address;
+
   return {
     lat: result.geometry.location.lat,
     lon: result.geometry.location.lng,
-    displayName: result.formatted_address,
+    displayName: cityName,
   };
 }
 

@@ -224,9 +224,9 @@ export default function HomePage() {
 
       const firstEventWithWeather = calendarEvents.find((event) => event.weather);
       if (firstEventWithWeather?.weather) {
-        const label = extractCityName(
-          firstEventWithWeather.displayName ?? firstEventWithWeather.location
-        );
+        const label =
+          firstEventWithWeather.displayName ??
+          extractCityName(firstEventWithWeather.location);
         setHeroWeather(firstEventWithWeather.weather);
         setHeroLocationLabel(label);
         setWeatherSummary(

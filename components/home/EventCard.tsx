@@ -211,6 +211,16 @@ function formatTimeRange(
   return `${format(startIso)} – ${format(endIso)}`;
 }
 
+function extractVenueName(location: string): string {
+  const trimmed = location.trim();
+  if (!trimmed) {
+    return trimmed;
+  }
+
+  const firstPart = trimmed.split(",")[0]?.trim();
+  return firstPart || trimmed;
+}
+
 export default function EventCard({
   event,
   timezone,
@@ -222,7 +232,9 @@ export default function EventCard({
 }) {
   const accent = ACCENT_COLORS[index % ACCENT_COLORS.length];
   const isVirtual = event.location === "Virtual";
-  const locationLabel = isVirtual ? "Virtual" : event.displayName ?? event.location;
+  const locationLabel = isVirtual
+    ? "Virtual"
+    : extractVenueName(event.location);
   const showUmbrella =
     event.weather && event.weather.chanceOfRain > 30;
   const weatherPresentation = event.weather
