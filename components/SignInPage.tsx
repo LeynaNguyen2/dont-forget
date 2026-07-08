@@ -173,7 +173,7 @@ export default function SignInPage() {
 
       <DecorativeBackground />
 
-      <div className="relative mx-auto flex min-h-screen max-w-[390px] flex-col px-5 pb-8 pt-[22vh]">
+      <div className="relative mx-auto flex min-h-screen max-w-[390px] flex-col px-5 pb-8 pt-[12vh]">
         <div className="flex flex-col items-center">
           <div className="relative flex flex-col items-center">
             <span
