@@ -238,11 +238,13 @@ export default function SignInPage() {
               title="Lunch with Maya"
               location="Tartine Manufactory"
               footerIcon={
-                <svg className="h-3.5 w-3.5" viewBox="0 0 12 12" fill="none" aria-hidden>
-                  <rect x="1" y="4" width="7" height="4" rx="1" fill="#8B6914" />
-                  <rect x="8" y="5" width="3" height="2" rx="0.5" fill="#6B5010" />
-                  <circle cx="3" cy="9" r="1.2" fill="#5C4A32" />
-                  <circle cx="7" cy="9" r="1.2" fill="#5C4A32" />
+                <svg className="h-3.5 w-3.5" viewBox="0 0 12 12" aria-hidden>
+                  <path
+                    fill="#7A6848"
+                    d="M1.2 5.6h.9l.7-1.4c.2-.4.6-.6 1-.6h2.3c.4 0 .8.2 1 .6l.7 1.4h.9c.5 0 .9.4.9.9V7H1.2V5.6Zm8.1 2.1H2.7c-.6 0-1.1.5-1.1 1.1v.2h8.8v-.2c0-.6-.5-1.1-1.1-1.1Z"
+                  />
+                  <circle cx="3.3" cy="8.8" r="1" fill="#7A6848" />
+                  <circle cx="8.7" cy="8.8" r="1" fill="#7A6848" />
                 </svg>
               }
               footerText="18 min drive"
