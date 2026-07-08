@@ -1,4 +1,4 @@
-import { MapPin, Umbrella } from "lucide-react";
+import { MapPin, Umbrella, Video } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 
 import type { CalendarEventWithWeather } from "@/lib/brief";
@@ -221,7 +221,8 @@ export default function EventCard({
   index: number;
 }) {
   const accent = ACCENT_COLORS[index % ACCENT_COLORS.length];
-  const location = event.displayName ?? event.location;
+  const isVirtual = event.location === "Virtual";
+  const locationLabel = isVirtual ? "Virtual" : event.displayName ?? event.location;
   const showUmbrella =
     event.weather && event.weather.chanceOfRain > 30;
   const weatherPresentation = event.weather
@@ -239,10 +240,14 @@ export default function EventCard({
           <h3 className="mt-1 font-serif text-lg font-bold text-brand-brown">
             {event.title}
           </h3>
-          {location && (
+          {locationLabel && (
             <p className="mt-1.5 flex items-center gap-1.5 text-sm text-brand-brown/60">
-              <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              <span className="truncate">{location}</span>
+              {isVirtual ? (
+                <Video className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              ) : (
+                <MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden />
+              )}
+              <span className="truncate">{locationLabel}</span>
             </p>
           )}
           {showUmbrella && (

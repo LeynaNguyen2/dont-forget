@@ -29,11 +29,15 @@ function formatWeather(weather: WeatherData | null): string {
 export function formatEventsForPrompt(
   events: CalendarEventWithWeather[]
 ): string {
-  if (!events.length) {
+  const eventsWithWeather = events.filter(
+    (event) => event.location !== "Virtual" && event.weather !== null
+  );
+
+  if (!eventsWithWeather.length) {
     return "No calendar events with locations scheduled for today.";
   }
 
-  return events
+  return eventsWithWeather
     .map((event, index) => {
       const locationLabel = event.displayName
         ? `${event.location} (${event.displayName})`

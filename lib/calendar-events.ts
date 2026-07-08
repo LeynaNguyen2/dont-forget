@@ -4,6 +4,7 @@ import { geocodeLocation } from "@/lib/geocode";
 import {
   fetchEventsFromCalendars,
   fetchTodayEvents,
+  isVirtualLocation,
 } from "@/lib/google-calendar";
 import { getWeather } from "@/lib/weather";
 
@@ -27,6 +28,16 @@ export async function getCalendarEventsWithWeather(
 
   return Promise.all(
     events.map(async (event) => {
+      if (isVirtualLocation(event.location)) {
+        return {
+          ...event,
+          lat: null,
+          lon: null,
+          displayName: null,
+          weather: null,
+        };
+      }
+
       const geocoded = await geocodeLocation(event.location);
       const lat = geocoded?.lat ?? null;
       const lon = geocoded?.lon ?? null;

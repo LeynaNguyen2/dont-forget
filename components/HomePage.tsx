@@ -556,7 +556,7 @@ export default function HomePage() {
           ) : events.length === 0 ? (
             <div className="rounded-3xl bg-[#FAFAF8] p-6 text-center shadow-card">
               <p className="text-sm text-brand-brown/50">
-                No events with locations scheduled.
+                No events scheduled.
               </p>
             </div>
           ) : (

@@ -60,12 +60,30 @@ function getEventTime(
   return value.dateTime ?? value.date ?? null;
 }
 
-function mapEvent(event: GoogleCalendarEvent): CalendarEvent | null {
-  const location = event.location?.trim();
-  if (!location) {
-    return null;
+const VIRTUAL_LOCATION_PATTERNS = [
+  /zoom\.us/i,
+  /meet\.google\.com/i,
+  /teams\.microsoft\.com/i,
+];
+
+export function resolveEventLocation(location: string | undefined | null): string {
+  const trimmed = location?.trim() ?? "";
+  if (!trimmed) {
+    return "Virtual";
   }
 
+  if (VIRTUAL_LOCATION_PATTERNS.some((pattern) => pattern.test(trimmed))) {
+    return "Virtual";
+  }
+
+  return trimmed;
+}
+
+export function isVirtualLocation(location: string): boolean {
+  return location === "Virtual";
+}
+
+function mapEvent(event: GoogleCalendarEvent): CalendarEvent | null {
   const startTime = getEventTime(event.start);
   const endTime = getEventTime(event.end);
 
@@ -77,7 +95,7 @@ function mapEvent(event: GoogleCalendarEvent): CalendarEvent | null {
     title: event.summary?.trim() || "Untitled event",
     startTime,
     endTime,
-    location,
+    location: resolveEventLocation(event.location),
   };
 }
 
