@@ -125,10 +125,16 @@ function extractCityName(address: string): string {
     .map((part) => part.trim())
     .filter(Boolean);
 
-  if (parts.length === 0) {
+  if (parts.length <= 1) {
     return trimmed;
   }
 
+  // Street address: "43941 Hugo Terrace, Fremont, CA 94538" → Fremont
+  if (/^\d/.test(parts[0])) {
+    return parts[1] ?? parts[0];
+  }
+
+  // City, region, country: "Hayward, California, US" → Hayward
   return parts[0];
 }
 
