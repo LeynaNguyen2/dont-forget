@@ -8,6 +8,8 @@
 
 Don't Forget is currently pending Google OAuth verification to open access to everyone. To request access, email [leynan246@gmail.com](mailto:leynan246@gmail.com) with your Gmail address to be added as a test user.
 
+Screenshots of the app showcased below!
+
 ---
 
 ## What It Does
