@@ -81,6 +81,24 @@ function getDayLabel(offset: number, timezone: string): string {
     .toUpperCase();
 }
 
+function extractCityName(address: string): string {
+  const trimmed = address.trim();
+  if (!trimmed) {
+    return trimmed;
+  }
+
+  const parts = trimmed
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length === 0) {
+    return trimmed;
+  }
+
+  return parts[0];
+}
+
 export default function HomePage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -167,8 +185,9 @@ export default function HomePage() {
 
       const firstEventWithWeather = calendarEvents.find((event) => event.weather);
       if (firstEventWithWeather?.weather) {
-        const label =
-          firstEventWithWeather.displayName ?? firstEventWithWeather.location;
+        const label = extractCityName(
+          firstEventWithWeather.displayName ?? firstEventWithWeather.location
+        );
         setHeroWeather(firstEventWithWeather.weather);
         setHeroLocationLabel(label);
         setWeatherSummary(
@@ -196,7 +215,7 @@ export default function HomePage() {
           setHeroError("Weather unavailable.");
           return;
         }
-        const label = result.displayName ?? location;
+        const label = extractCityName(result.displayName ?? location);
         setHeroWeather(result.weather);
         setHeroLocationLabel(label);
         setWeatherSummary(buildWeatherSummary(result.weather, label));
