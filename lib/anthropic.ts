@@ -55,3 +55,44 @@ export async function generateBrief(
 
   return text.trim();
 }
+
+export interface MorningBriefPair {
+  summary: string;
+  fullBrief: string;
+}
+
+export async function generateBriefPair(
+  systemPrompt: string,
+  userPrompt: string
+): Promise<MorningBriefPair> {
+  const raw = await generateBrief(
+    systemPrompt,
+    `${userPrompt}
+
+Return valid JSON only with exactly these keys:
+{"summary":"one-line preview under 80 characters — event count, temp, location, top tip","fullBrief":"the full 3-sentence morning brief"}
+Do not wrap in markdown or code fences.`
+  );
+
+  try {
+    const parsed = JSON.parse(raw) as MorningBriefPair;
+    const summary = parsed.summary?.trim() ?? "";
+    const fullBrief = parsed.fullBrief?.trim() ?? "";
+
+    if (!summary || !fullBrief) {
+      throw new Error("Missing summary or fullBrief");
+    }
+
+    return {
+      summary: summary.length > 80 ? `${summary.slice(0, 77)}...` : summary,
+      fullBrief,
+    };
+  } catch {
+    const fullBrief = raw.trim();
+    return {
+      fullBrief,
+      summary:
+        fullBrief.length > 80 ? `${fullBrief.slice(0, 77)}...` : fullBrief,
+    };
+  }
+}

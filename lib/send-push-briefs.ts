@@ -1,4 +1,4 @@
-import { generateMorningBriefFromSessionCookie } from "@/lib/morning-brief";
+import { generateMorningBriefPairFromSessionCookie } from "@/lib/morning-brief";
 import {
   getAllPushSubscriptions,
   removePushSubscription,
@@ -11,6 +11,14 @@ export interface PushBriefResult {
   error?: string;
 }
 
+function formatPushTitle(firstName?: string): string {
+  const name =
+    firstName?.trim() ||
+    "there";
+  const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
+  return `☀️ Good morning, ${capitalized}!`;
+}
+
 export async function sendPushBriefsToAll(
   origin: string
 ): Promise<{ total: number; results: PushBriefResult[] }> {
@@ -19,15 +27,19 @@ export async function sendPushBriefsToAll(
   const results = await Promise.all(
     subscriptions.map(async (record): Promise<PushBriefResult> => {
       try {
-        const brief = await generateMorningBriefFromSessionCookie({
+        const brief = await generateMorningBriefPairFromSessionCookie({
           origin,
           sessionCookie: record.sessionCookie,
           timezone: record.timezone,
         });
 
         await sendPushNotification(record.subscription, {
-          title: "Don't Forget",
-          body: brief,
+          title: formatPushTitle(
+            record.firstName ?? record.userEmail.split("@")[0]
+          ),
+          body: brief.summary,
+          fullBrief: brief.fullBrief,
+          briefDate: brief.date,
           url: "/",
         });
 

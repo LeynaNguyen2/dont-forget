@@ -14,6 +14,7 @@ export interface PushSubscriptionPayload {
 export interface StoredPushSubscription {
   id: string;
   userEmail: string;
+  firstName?: string;
   subscription: PushSubscriptionPayload;
   sessionCookie: string;
   timezone: string;

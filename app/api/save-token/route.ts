@@ -52,10 +52,16 @@ export async function POST(request: Request) {
     }
 
     const id = getSubscriptionId(subscription.endpoint);
+    const displayName = session.user.name?.trim();
+    const firstName =
+      displayName?.split(/\s+/)[0] ??
+      session.user.email.split("@")[0]?.split(/[._-]/)[0] ??
+      "there";
 
     await savePushSubscription({
       id,
       userEmail: session.user.email,
+      firstName,
       subscription,
       sessionCookie,
       timezone,

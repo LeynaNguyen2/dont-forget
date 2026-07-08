@@ -346,6 +346,14 @@ export default function HomePage() {
     }
   }, [timezone]);
 
+  const applyBriefFromPush = useCallback((cache: BriefCache) => {
+    writeBriefCache(cache);
+    setBrief(cache.text);
+    setBriefGeneratedAt(new Date(cache.generatedAt));
+    setBriefError(null);
+    setLoadingBrief(false);
+  }, []);
+
   const loadDayTab = useCallback(
     async (dayOffset: number) => {
       if (!timezone) return;
@@ -436,6 +444,35 @@ export default function HomePage() {
     if (status !== "authenticated" || !timezone) return;
     void fetchBrief(false);
   }, [status, timezone, fetchBrief]);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    const handleMessage = (event: MessageEvent) => {
+      const data = event.data as
+        | { type?: string; brief?: BriefCache }
+        | undefined;
+
+      if (
+        (data?.type === "PUSH_BRIEF" || data?.type === "PENDING_BRIEF") &&
+        data.brief
+      ) {
+        applyBriefFromPush(data.brief);
+      }
+    };
+
+    navigator.serviceWorker.addEventListener("message", handleMessage);
+
+    void navigator.serviceWorker.ready.then((registration) => {
+      registration.active?.postMessage({ type: "GET_PENDING_BRIEF" });
+    });
+
+    return () => {
+      navigator.serviceWorker.removeEventListener("message", handleMessage);
+    };
+  }, [applyBriefFromPush]);
 
   useEffect(() => {
     if (tab !== "week" || !timezone) return;

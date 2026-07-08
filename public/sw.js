@@ -1,5 +1,7 @@
-const CACHE_NAME = "dont-forget-v3";
+const CACHE_NAME = "dont-forget-v4";
 const PRECACHE_URLS = ["/manifest.json", "/icon-192.png", "/icon-512.png"];
+
+let pendingPushBrief = null;
 
 function isHttpOrHttps(url) {
   return url.protocol === "http:" || url.protocol === "https:";
@@ -35,8 +37,10 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("push", (event) => {
   let payload = {
-    title: "Don't Forget",
+    title: "☀️ Good morning!",
     body: "Your morning brief is ready.",
+    fullBrief: "",
+    briefDate: "",
     url: "/",
     icon: "/icon-192.png",
     badge: "/icon-192.png",
@@ -50,33 +54,90 @@ self.addEventListener("push", (event) => {
     }
   }
 
+  const generatedAt = new Date().toISOString();
+  const briefPayload = {
+    text: payload.fullBrief || payload.body,
+    date: payload.briefDate || generatedAt.slice(0, 10),
+    generatedAt,
+  };
+
+  pendingPushBrief = briefPayload;
+
   event.waitUntil(
-    self.registration.showNotification(payload.title, {
-      body: payload.body,
-      icon: payload.icon,
-      badge: payload.badge,
-      data: { url: payload.url },
-    })
+    Promise.all([
+      self.registration.showNotification(payload.title, {
+        body: payload.body,
+        icon: payload.icon,
+        badge: payload.badge,
+        requireInteraction: false,
+        data: {
+          url: payload.url ?? "/",
+          fullBrief: payload.fullBrief || payload.body,
+          briefDate: briefPayload.date,
+          generatedAt,
+        },
+      }),
+      clients
+        .matchAll({ type: "window", includeUncontrolled: true })
+        .then((windowClients) =>
+          Promise.all(
+            windowClients.map((client) =>
+              client.postMessage({
+                type: "PUSH_BRIEF",
+                brief: briefPayload,
+              })
+            )
+          )
+        ),
+    ])
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "GET_PENDING_BRIEF" && pendingPushBrief) {
+    event.source.postMessage({
+      type: "PENDING_BRIEF",
+      brief: pendingPushBrief,
+    });
+    pendingPushBrief = null;
+  }
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   const targetUrl = event.notification.data?.url ?? "/";
+  const briefPayload = event.notification.data?.fullBrief
+    ? {
+        text: event.notification.data.fullBrief,
+        date:
+          event.notification.data.briefDate ||
+          new Date().toISOString().slice(0, 10),
+        generatedAt:
+          event.notification.data.generatedAt || new Date().toISOString(),
+      }
+    : pendingPushBrief;
 
   event.waitUntil(
     clients
       .matchAll({ type: "window", includeUncontrolled: true })
-      .then((windowClients) => {
+      .then(async (windowClients) => {
         for (const client of windowClients) {
-          if ("focus" in client) {
+          if (briefPayload) {
+            client.postMessage({ type: "PUSH_BRIEF", brief: briefPayload });
+          }
+
+          if (client.url.startsWith(self.location.origin) && "focus" in client) {
+            if (briefPayload) {
+              client.postMessage({ type: "PUSH_BRIEF", brief: briefPayload });
+            }
             return client.focus();
           }
         }
 
-        if (clients.openWindow) {
-          return clients.openWindow(targetUrl);
+        const newClient = await clients.openWindow(targetUrl);
+        if (newClient && briefPayload) {
+          newClient.postMessage({ type: "PUSH_BRIEF", brief: briefPayload });
         }
       })
   );
