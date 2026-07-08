@@ -8,6 +8,7 @@ import { getCalendarEventsWithWeather } from "@/lib/calendar-events";
 
 export interface MorningBriefPair {
   summary: string;
+  expanded: string;
   fullBrief: string;
   date: string;
 }

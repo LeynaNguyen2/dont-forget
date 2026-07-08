@@ -38,6 +38,7 @@ export async function sendPushBriefsToAll(
             record.firstName ?? record.userEmail.split("@")[0]
           ),
           body: brief.summary,
+          expanded: brief.expanded,
           fullBrief: brief.fullBrief,
           briefDate: brief.date,
           url: "/",

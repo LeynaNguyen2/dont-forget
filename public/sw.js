@@ -1,7 +1,27 @@
-const CACHE_NAME = "dont-forget-v4";
+const CACHE_NAME = "dont-forget-v6";
 const PRECACHE_URLS = ["/manifest.json", "/icon-192.png", "/icon-512.png"];
 
 let pendingPushBrief = null;
+
+function buildExpandedActions(expanded) {
+  if (!expanded) {
+    return [];
+  }
+
+  return expanded
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 4)
+    .map((line, index) => ({
+      action: `prep-${index}`,
+      title: line.length > 50 ? `${line.slice(0, 47)}...` : line,
+    }));
+}
+
+function buildNotificationBody(summary) {
+  return summary;
+}
 
 function isHttpOrHttps(url) {
   return url.protocol === "http:" || url.protocol === "https:";
@@ -39,11 +59,11 @@ self.addEventListener("push", (event) => {
   let payload = {
     title: "☀️ Good morning!",
     body: "Your morning brief is ready.",
+    expanded: "",
     fullBrief: "",
     briefDate: "",
     url: "/",
     icon: "/icon-192.png",
-    badge: "/icon-192.png",
   };
 
   if (event.data) {
@@ -63,17 +83,22 @@ self.addEventListener("push", (event) => {
 
   pendingPushBrief = briefPayload;
 
+  const summary = payload.body;
+  const expanded = payload.expanded || "";
+  const actions = buildExpandedActions(expanded);
+
   event.waitUntil(
     Promise.all([
       self.registration.showNotification(payload.title, {
-        body: payload.body,
+        body: buildNotificationBody(summary),
         icon: payload.icon,
-        badge: payload.badge,
         requireInteraction: false,
+        actions,
         data: {
           url: payload.url ?? "/",
-          fullBrief: payload.fullBrief || payload.body,
-          summary: payload.body,
+          summary,
+          expanded,
+          fullBrief: payload.fullBrief || summary,
           briefDate: briefPayload.date,
           generatedAt,
         },

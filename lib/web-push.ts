@@ -28,6 +28,7 @@ export async function sendPushNotification(
   payload: {
     title: string;
     body: string;
+    expanded?: string;
     fullBrief?: string;
     briefDate?: string;
     url?: string;
@@ -40,11 +41,11 @@ export async function sendPushNotification(
     JSON.stringify({
       title: payload.title,
       body: payload.body,
+      expanded: payload.expanded,
       fullBrief: payload.fullBrief,
       briefDate: payload.briefDate,
       url: payload.url ?? "/",
       icon: "/icon-192.png",
-      badge: "/icon-192.png",
     })
   );
 }

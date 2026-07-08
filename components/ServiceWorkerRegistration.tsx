@@ -8,7 +8,7 @@ export default function ServiceWorkerRegistration() {
       return;
     }
 
-    const swVersion = "5";
+    const swVersion = "6";
     navigator.serviceWorker.register(`/sw.js?v=${swVersion}`).catch((error) => {
       console.error("Service worker registration failed:", error);
     });

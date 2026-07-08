@@ -13,7 +13,8 @@ interface AnthropicMessageResponse {
 
 export async function generateBrief(
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
+  options?: { maxTokens?: number }
 ): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -29,7 +30,7 @@ export async function generateBrief(
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-5",
-      max_tokens: 512,
+      max_tokens: options?.maxTokens ?? 512,
       system: systemPrompt,
       messages: [
         {
@@ -58,6 +59,7 @@ export async function generateBrief(
 
 export interface MorningBriefPair {
   summary: string;
+  expanded: string;
   fullBrief: string;
 }
 
@@ -76,18 +78,25 @@ export function parseBriefPairResponse(raw: string): MorningBriefPair {
   const parsed = JSON.parse(jsonText) as Partial<MorningBriefPair>;
   const summary =
     typeof parsed.summary === "string" ? parsed.summary.trim() : "";
+  const expanded =
+    typeof parsed.expanded === "string" ? parsed.expanded.trim() : "";
   const fullBrief =
     typeof parsed.fullBrief === "string" ? parsed.fullBrief.trim() : "";
 
-  if (!summary || !fullBrief) {
-    throw new Error("Missing summary or fullBrief");
+  if (!summary || !expanded || !fullBrief) {
+    throw new Error("Missing summary, expanded, or fullBrief");
   }
 
   return {
     summary: summary.length > 80 ? `${summary.slice(0, 77)}...` : summary,
+    expanded,
     fullBrief,
   };
 }
+
+const BRIEF_TRIPLE_JSON_PROMPT = `Return valid JSON only with exactly these keys:
+{"summary":"one line under 80 characters — event count, weather, and top event","expanded":"3-4 short actionable prep lines separated by \\\\n, each starting with an emoji. Focus on what to bring, wear, leave-by times, and motivation. Example: \\\"☀️ No jacket needed today, 66°F\\\\n💧 Bring water — it'll warm up to 80°F\\\\n📍 Leave by 2:45 for your 3pm meeting\\\\n💪 Big presentation today — you've got this!\\\"","fullBrief":"the full conversational 3-sentence morning brief for in-app display"}
+Do not wrap in markdown or code fences.`;
 
 export async function generateBriefPair(
   systemPrompt: string,
@@ -95,21 +104,20 @@ export async function generateBriefPair(
 ): Promise<MorningBriefPair> {
   const raw = await generateBrief(
     systemPrompt,
-    `${userPrompt}
-
-Return valid JSON only with exactly these keys:
-{"summary":"one-line preview under 80 characters — event count, temp, location, top tip","fullBrief":"the full 3-sentence morning brief"}
-Do not wrap in markdown or code fences.`
+    `${userPrompt}\n\n${BRIEF_TRIPLE_JSON_PROMPT}`,
+    { maxTokens: 768 }
   );
 
   try {
     return parseBriefPairResponse(raw);
   } catch {
     const cleaned = stripMarkdownCodeFences(raw);
+    const summary =
+      cleaned.length > 80 ? `${cleaned.slice(0, 77)}...` : cleaned;
     return {
+      summary,
+      expanded: summary,
       fullBrief: cleaned,
-      summary:
-        cleaned.length > 80 ? `${cleaned.slice(0, 77)}...` : cleaned,
     };
   }
 }
