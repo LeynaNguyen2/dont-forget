@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 
-import {
-  getAllPushSubscriptions,
-  removePushSubscription,
-} from "@/lib/push-subscriptions";
-import { sendPushNotification } from "@/lib/web-push";
+import { sendPushBriefsToAll } from "@/lib/send-push-briefs";
 
-const TEST_NOTIFY_SECRET = "dontforget2026";
+const TEST_NOTIFY_SECRET = "dontforget";
 
 export async function GET(request: Request) {
   const secret = new URL(request.url).searchParams.get("secret");
@@ -16,44 +12,13 @@ export async function GET(request: Request) {
   }
 
   try {
-    const subscriptions = await getAllPushSubscriptions();
-
-    const results = await Promise.all(
-      subscriptions.map(async (record) => {
-        try {
-          await sendPushNotification(record.subscription, {
-            title: "Don't Forget",
-            body: "Test notification — push is working!",
-            url: "/",
-          });
-
-          return { id: record.id, status: "sent" as const };
-        } catch (error) {
-          const statusCode =
-            error instanceof Error &&
-            "statusCode" in error &&
-            typeof error.statusCode === "number"
-              ? error.statusCode
-              : null;
-
-          if (statusCode === 404 || statusCode === 410) {
-            await removePushSubscription(record.id);
-            return { id: record.id, status: "removed" as const };
-          }
-
-          console.error(`Test notify failed for ${record.id}:`, error);
-          return {
-            id: record.id,
-            status: "failed" as const,
-            error: error instanceof Error ? error.message : "Unknown error",
-          };
-        }
-      })
+    const { total, results } = await sendPushBriefsToAll(
+      new URL(request.url).origin
     );
 
     return NextResponse.json({
       success: true,
-      total: subscriptions.length,
+      total,
       results,
     });
   } catch (error) {
