@@ -120,6 +120,10 @@ Open [http://localhost:3000](http://localhost:3000) and sign in with Google.
 
 <div align="center">
 <img src="public/screenshots/signin.PNG" width="200" />
+<br /><br />
+<img src="public/screenshots/notification.jpg" width="400" />
+<p>Morning push notification</p>
+<br /><br />
 <img src="public/screenshots/onboarding-1.PNG" width="200" />
 <img src="public/screenshots/onboarding-2.PNG" width="200" />
 <img src="public/screenshots/today.PNG" width="200" />
