@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     apple: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
   },
   verification: {
-    google: "uRh4uwS7O_HxbzL5judPSupxGHL_nPp0VKjxc67AhNM",
+    google: "jQzXNVVP90d5KTDlVb8xynZbU9ol40V7VaqmNaJJZV8",
   },
   other: {
     "mobile-web-app-capable": "yes",
