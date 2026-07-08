@@ -5,6 +5,13 @@ export interface CalendarEvent {
   location: string;
 }
 
+export interface GoogleCalendar {
+  id: string;
+  name: string;
+  backgroundColor: string;
+  primary?: boolean;
+}
+
 interface GoogleCalendarEvent {
   summary?: string;
   location?: string;
@@ -20,6 +27,22 @@ interface GoogleCalendarEvent {
 
 interface GoogleCalendarListResponse {
   items?: GoogleCalendarEvent[];
+  error?: {
+    code?: number;
+    message?: string;
+    status?: string;
+  };
+}
+
+interface GoogleCalendarListEntry {
+  id?: string;
+  summary?: string;
+  backgroundColor?: string;
+  primary?: boolean;
+}
+
+interface GoogleCalendarListApiResponse {
+  items?: GoogleCalendarListEntry[];
   error?: {
     code?: number;
     message?: string;
@@ -58,8 +81,44 @@ function mapEvent(event: GoogleCalendarEvent): CalendarEvent | null {
   };
 }
 
-export async function fetchTodayEvents(
+export async function fetchCalendarList(
+  accessToken: string
+): Promise<GoogleCalendar[]> {
+  const response = await fetch(
+    "https://www.googleapis.com/calendar/v3/users/me/calendarList",
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  if (response.status === 401) {
+    throw new Error("TOKEN_EXPIRED");
+  }
+
+  if (!response.ok) {
+    const body = (await response.json()) as GoogleCalendarListApiResponse;
+    throw new Error(body.error?.message ?? "Failed to fetch calendar list");
+  }
+
+  const data = (await response.json()) as GoogleCalendarListApiResponse;
+
+  return (data.items ?? [])
+    .filter((item): item is GoogleCalendarListEntry & { id: string } =>
+      Boolean(item.id)
+    )
+    .map((item) => ({
+      id: item.id,
+      name: item.summary?.trim() || "Untitled calendar",
+      backgroundColor: item.backgroundColor ?? "#3B6FE8",
+      primary: item.primary,
+    }));
+}
+
+async function fetchCalendarEvents(
   accessToken: string,
+  calendarId: string,
   timeMin: string,
   timeMax: string
 ): Promise<CalendarEvent[]> {
@@ -70,8 +129,9 @@ export async function fetchTodayEvents(
     orderBy: "startTime",
   });
 
+  const encodedCalendarId = encodeURIComponent(calendarId);
   const response = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`,
+    `https://www.googleapis.com/calendar/v3/calendars/${encodedCalendarId}/events?${params}`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -95,4 +155,46 @@ export async function fetchTodayEvents(
   return (data.items ?? [])
     .map(mapEvent)
     .filter((event): event is CalendarEvent => event !== null);
+}
+
+export async function fetchEventsFromCalendars(
+  accessToken: string,
+  calendarIds: string[],
+  timeMin: string,
+  timeMax: string
+): Promise<CalendarEvent[]> {
+  if (calendarIds.length === 0) {
+    return [];
+  }
+
+  const eventGroups = await Promise.all(
+    calendarIds.map((calendarId) =>
+      fetchCalendarEvents(accessToken, calendarId, timeMin, timeMax)
+    )
+  );
+
+  const merged = eventGroups.flat();
+  const seen = new Set<string>();
+
+  return merged
+    .filter((event) => {
+      const key = `${event.title}|${event.startTime}|${event.location}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
+    .sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    );
+}
+
+export async function fetchTodayEvents(
+  accessToken: string,
+  timeMin: string,
+  timeMax: string
+): Promise<CalendarEvent[]> {
+  return fetchCalendarEvents(accessToken, "primary", timeMin, timeMax);
 }

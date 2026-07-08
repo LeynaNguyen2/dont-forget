@@ -33,6 +33,10 @@ export async function GET(request: Request) {
     }
 
     const dayOffset = getDayFromRequest(request);
+    const calendarIdsParam = new URL(request.url).searchParams.get("calendarIds");
+    const calendarIds = calendarIdsParam
+      ? calendarIdsParam.split(",").map((id) => id.trim()).filter(Boolean)
+      : undefined;
 
     try {
       getDayWindow(timezone, dayOffset);
@@ -43,7 +47,8 @@ export async function GET(request: Request) {
     const eventsWithCoordinates = await getCalendarEventsWithWeather(
       session.accessToken,
       timezone,
-      dayOffset
+      dayOffset,
+      calendarIds
     );
 
     return NextResponse.json({ events: eventsWithCoordinates });

@@ -13,7 +13,7 @@ import WeekDayStrip, {
 import WeatherIcon from "@/components/WeatherIcon";
 import type { CalendarEventWithWeather } from "@/lib/brief";
 import { fetchProfile } from "@/lib/profile-client";
-import { getHomeLocation } from "@/lib/settings";
+import { getHomeLocation, getPreferences } from "@/lib/settings";
 import { buildWeatherSummary } from "@/lib/weather-description";
 import type { WeatherData } from "@/lib/weather";
 
@@ -235,6 +235,13 @@ export default function HomePage() {
       const day =
         dayOffset === 0 ? "today" : dayOffset === 1 ? "tomorrow" : String(dayOffset);
       const params = new URLSearchParams({ timezone, day });
+      const prefs = getPreferences();
+      const enabledIds = Object.entries(prefs.enabledCalendars)
+        .filter(([, enabled]) => enabled)
+        .map(([id]) => id);
+      if (enabledIds.length > 0) {
+        params.set("calendarIds", enabledIds.join(","));
+      }
       const response = await fetch(`/api/calendar?${params}`, {
         credentials: "include",
         headers: { "x-timezone": timezone },

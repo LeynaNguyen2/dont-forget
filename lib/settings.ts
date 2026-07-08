@@ -6,13 +6,21 @@ export interface UserPreferences {
   carryWater: boolean;
   carryUmbrella: boolean;
   notificationTime: string;
+  morningBriefingEnabled: boolean;
+  activeDays: boolean[];
+  enabledCalendars: Record<string, boolean>;
 }
+
+export const DEFAULT_ACTIVE_DAYS = [false, true, true, true, true, true, false];
 
 export const DEFAULT_PREFERENCES: UserPreferences = {
   homeAddress: "",
   carryWater: false,
   carryUmbrella: false,
   notificationTime: "07:00",
+  morningBriefingEnabled: true,
+  activeDays: [...DEFAULT_ACTIVE_DAYS],
+  enabledCalendars: {},
 };
 
 function readPreferences(): UserPreferences {
@@ -27,6 +35,11 @@ function readPreferences(): UserPreferences {
       return {
         ...DEFAULT_PREFERENCES,
         ...parsed,
+        activeDays:
+          Array.isArray(parsed.activeDays) && parsed.activeDays.length === 7
+            ? parsed.activeDays
+            : DEFAULT_PREFERENCES.activeDays,
+        enabledCalendars: parsed.enabledCalendars ?? {},
       };
     } catch {
       return { ...DEFAULT_PREFERENCES };
@@ -54,6 +67,12 @@ export function savePreferences(preferences: UserPreferences): void {
     carryWater: preferences.carryWater,
     carryUmbrella: preferences.carryUmbrella,
     notificationTime: preferences.notificationTime,
+    morningBriefingEnabled: preferences.morningBriefingEnabled,
+    activeDays:
+      preferences.activeDays.length === 7
+        ? preferences.activeDays
+        : DEFAULT_PREFERENCES.activeDays,
+    enabledCalendars: preferences.enabledCalendars,
   };
 
   localStorage.setItem(PREFERENCES_KEY, JSON.stringify(normalized));
@@ -75,4 +94,19 @@ export function setHomeLocation(location: string): void {
     ...readPreferences(),
     homeAddress: location,
   });
+}
+
+export function getEnabledCalendarIds(
+  calendarIds: string[],
+  preferences: UserPreferences = readPreferences()
+): string[] {
+  const { enabledCalendars } = preferences;
+  const hasOverrides = Object.keys(enabledCalendars).length > 0;
+
+  if (!hasOverrides) {
+    return calendarIds;
+  }
+
+  const enabled = calendarIds.filter((id) => enabledCalendars[id] !== false);
+  return enabled.length > 0 ? enabled : calendarIds;
 }
