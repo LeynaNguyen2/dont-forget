@@ -10,7 +10,6 @@ import {
   Lock,
   LogOut,
   MapPin,
-  MessageCircle,
   Plus,
   Star,
 } from "lucide-react";
@@ -640,18 +639,6 @@ export default function SettingsPage() {
                     "noopener,noreferrer"
                   )
                 }
-              />
-              <div className="h-px bg-brand-brown/8" />
-              <AboutRow
-                icon={
-                  <MessageCircle className="h-[18px] w-[18px] text-brand-blue" />
-                }
-                title="Send Feedback"
-                subtitle="Help us get better"
-                onClick={() => {
-                  window.location.href =
-                    "mailto:leynanguyen2@gmail.com?subject=Don't%20Forget%20Feedback";
-                }}
               />
               <div className="h-px bg-brand-brown/8" />
               <div className="flex items-center justify-between py-3.5">
