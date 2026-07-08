@@ -19,6 +19,39 @@ import type { WeatherData } from "@/lib/weather";
 
 type Tab = "today" | "tomorrow" | "week";
 
+const BRIEF_CACHE_KEY = "brief-cache";
+
+interface BriefCache {
+  text: string;
+  date: string;
+  generatedAt: string;
+}
+
+function getTodayDateKey(timezone: string): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: timezone });
+}
+
+function readBriefCache(): BriefCache | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const stored = localStorage.getItem(BRIEF_CACHE_KEY);
+    if (!stored) {
+      return null;
+    }
+
+    return JSON.parse(stored) as BriefCache;
+  } catch {
+    return null;
+  }
+}
+
+function writeBriefCache(cache: BriefCache): void {
+  localStorage.setItem(BRIEF_CACHE_KEY, JSON.stringify(cache));
+}
+
 async function parseApiError(response: Response, fallback: string): Promise<string> {
   try {
     const contentType = response.headers.get("content-type") ?? "";
@@ -259,8 +292,20 @@ export default function HomePage() {
     [timezone]
   );
 
-  const fetchBrief = useCallback(async () => {
+  const fetchBrief = useCallback(async (forceRefresh = false) => {
     if (!timezone) return;
+
+    const todayKey = getTodayDateKey(timezone);
+
+    if (!forceRefresh) {
+      const cached = readBriefCache();
+      if (cached && cached.date === todayKey) {
+        setBrief(cached.text);
+        setBriefGeneratedAt(new Date(cached.generatedAt));
+        setBriefError(null);
+        return;
+      }
+    }
 
     setLoadingBrief(true);
     setBriefError(null);
@@ -274,16 +319,27 @@ export default function HomePage() {
 
       if (!response.ok) {
         setBrief(null);
+        setBriefGeneratedAt(null);
         setBriefError(
           await parseApiError(response, "Failed to load morning brief.")
         );
         return;
       }
 
-      setBrief(await response.text());
-      setBriefGeneratedAt(new Date());
+      const text = await response.text();
+      const generatedAt = new Date();
+
+      writeBriefCache({
+        text,
+        date: todayKey,
+        generatedAt: generatedAt.toISOString(),
+      });
+
+      setBrief(text);
+      setBriefGeneratedAt(generatedAt);
     } catch {
       setBrief(null);
+      setBriefGeneratedAt(null);
       setBriefError("Failed to load morning brief.");
     } finally {
       setLoadingBrief(false);
@@ -374,14 +430,12 @@ export default function HomePage() {
 
     const offset = tab === "tomorrow" ? 1 : 0;
     void loadDayTab(offset);
+  }, [status, timezone, tab, loadDayTab, loadWeekView]);
 
-    if (tab === "today") {
-      void fetchBrief();
-    } else {
-      setBrief(null);
-      setBriefError(null);
-    }
-  }, [status, timezone, tab, loadDayTab, loadWeekView, fetchBrief]);
+  useEffect(() => {
+    if (status !== "authenticated" || !timezone) return;
+    void fetchBrief(false);
+  }, [status, timezone, fetchBrief]);
 
   useEffect(() => {
     if (tab !== "week" || !timezone) return;
@@ -508,7 +562,7 @@ export default function HomePage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => void fetchBrief()}
+                  onClick={() => void fetchBrief(true)}
                   disabled={loadingBrief}
                   className="flex items-center gap-1 rounded-full bg-brand-blue/10 px-3 py-1 text-xs font-medium text-brand-blue transition hover:bg-brand-blue/15 disabled:opacity-50"
                 >
