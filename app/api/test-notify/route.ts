@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 
-import { sendPushBriefsToAll } from "@/lib/send-push-briefs";
+import {
+  getAllPushSubscriptions,
+  removePushSubscription,
+} from "@/lib/push-subscriptions";
+import { sendPushNotification } from "@/lib/web-push";
 
 const TEST_NOTIFY_SECRET = "dontforget";
+const TEST_PUSH_TITLE = "☀️ Good morning Leyna!";
+const TEST_PUSH_BODY =
+  "3 events today — cloudy 60°F, Team Meeting at 3pm in Fertitta Hall. Leave by 2:40. Rain after 6pm — umbrella if you're out late.";
 
 export async function GET(request: Request) {
   const secret = new URL(request.url).searchParams.get("secret");
@@ -12,13 +19,44 @@ export async function GET(request: Request) {
   }
 
   try {
-    const { total, results } = await sendPushBriefsToAll(
-      new URL(request.url).origin
+    const subscriptions = await getAllPushSubscriptions();
+
+    const results = await Promise.all(
+      subscriptions.map(async (record) => {
+        try {
+          await sendPushNotification(record.subscription, {
+            title: TEST_PUSH_TITLE,
+            body: TEST_PUSH_BODY,
+            url: "/",
+          });
+
+          return { id: record.id, status: "sent" as const };
+        } catch (error) {
+          const statusCode =
+            error instanceof Error &&
+            "statusCode" in error &&
+            typeof error.statusCode === "number"
+              ? error.statusCode
+              : null;
+
+          if (statusCode === 404 || statusCode === 410) {
+            await removePushSubscription(record.id);
+            return { id: record.id, status: "removed" as const };
+          }
+
+          console.error(`Test notify failed for ${record.id}:`, error);
+          return {
+            id: record.id,
+            status: "failed" as const,
+            error: error instanceof Error ? error.message : "Unknown error",
+          };
+        }
+      })
     );
 
     return NextResponse.json({
       success: true,
-      total,
+      total: subscriptions.length,
       results,
     });
   } catch (error) {
